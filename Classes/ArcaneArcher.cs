@@ -30,6 +30,8 @@ using Kingmaker.UnitLogic.Alignments;
 using Kingmaker.UnitLogic.Abilities.Components.CasterCheckers;
 using Kingmaker.Blueprints.Items.Ecnchantments;
 using CallOfTheWild;
+using Kingmaker.ElementsSystem;
+using Kingmaker.EntitySystem.Entities;
 
 
 namespace ATouchOfMagic
@@ -71,7 +73,7 @@ namespace ATouchOfMagic
                 "Many who seek to perfect the use of the bow sometimes pursue the path of the arcane archer. " +
                 "Arcane archers are masters of ranged combat, as they possess the ability to strike at targets with unerring accuracy and can imbue their arrows with powerful spells. " +
                 "Arrows fired by arcane archers fly at weird and uncanny angles to strike at foes around corners, and can pass through solid objects to hit enemies that cower behind such cover. " +
-                "At the height of their power, arcane archers can fell even the most powerful foes with a single, deadly shot.. ");
+                "At the height of their power, arcane archers can fell even the most powerful foes with a single, deadly shot. ");
             // Matched Druid skill progression
             arcaneArcher.SkillPoints = 3;
             arcaneArcher.HitDie = DiceType.D10;
@@ -133,7 +135,7 @@ namespace ATouchOfMagic
             arcaneArcher.AddComponent(Helpers.Create<SkipLevelsForSpellProgression>(s => s.Levels = skipLevels.ToArray()));
 
             Helpers.RegisterClass(arcaneArcher);
-            
+
         }
 
 
@@ -431,7 +433,7 @@ namespace ATouchOfMagic
                                             AbilityRange.Weapon,
                                             "",
                                             "",
-                                            Helpers.Create<NewMechanics.AttackAnimation>(),
+                                            Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
                                             applyBuffAction,
                                             Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                             Helpers.CreateResourceLogic(seekerArrowResource)
@@ -478,7 +480,7 @@ namespace ATouchOfMagic
                                             AbilityRange.Weapon,
                                             "",
                                             "",
-                                            Helpers.Create<NewMechanics.AttackAnimation>(),
+                                            Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
                                             applyBuffAction,
                                             Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                             Helpers.CreateResourceLogic(phaseArrowResource)
@@ -511,8 +513,8 @@ namespace ATouchOfMagic
                                             AbilityRange.Weapon,
                                             "",
                                             "",
-                                            Helpers.Create<NewMechanics.AttackAnimation>(),
-                                            Helpers.CreateRunActions(Common.createContextActionAttackInRange()),
+                                            Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
+                                            Helpers.CreateRunActions(createContextActionAttackInRange()),
                                             Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                             Helpers.CreateAbilityTargetsAround(50.Feet(), TargetType.Enemy),
                                             Helpers.CreateResourceLogic(hailOfArrowsResource));
@@ -551,7 +553,7 @@ namespace ATouchOfMagic
                                             AbilityRange.Weapon,
                                             "",
                                             "",
-                                            Helpers.Create<NewMechanics.AttackAnimation>(),
+                                            Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
                                             action,
                                             Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                             saveDC,
@@ -561,6 +563,15 @@ namespace ATouchOfMagic
             arrowOfDeathAbility.NeedEquipWeapons = true;
             arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathAbility));
         }
+
+        static public ContextActionAttackInRange createContextActionAttackInRange(ActionList action_on_hit = null, ActionList action_on_miss = null)
+        {
+            var c = Helpers.Create<ContextActionAttackInRange>();
+            c.action_on_success = action_on_hit;
+            c.action_on_miss = action_on_miss;
+            return c;
+        }
+
     }
 
     public class EnhanceArrowsMagic : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateWeaponStats>, IInitiatorRulebookHandler<RuleCalculateAttackBonusWithoutTarget>
@@ -755,58 +766,50 @@ namespace ATouchOfMagic
         }
     }
 
-    //  static public NewMechanics.ContextActionAttackInRange createContextActionAttackInRange(ActionList action_on_hit = null, ActionList action_on_miss = null)
-    //     {
-    //         var c = Helpers.Create<NewMechanics.ContextActionAttackInRange>();
-    //         c.action_on_success = action_on_hit;
-    //         c.action_on_miss = action_on_miss;
-    //         return c;
-    //     }
-    
-    //   public class ContextActionAttackInRange : ContextAction
-    //     {
-    //         public ActionList action_on_success = null;
-    //         public ActionList action_on_miss = null;
-    //         public override string GetCaption()
-    //         {
-    //             return string.Format("Caster attack");
-    //         }
+    public class ContextActionAttackInRange : ContextAction
+    {
+        public ActionList action_on_success = null;
+        public ActionList action_on_miss = null;
+        public override string GetCaption()
+        {
+            return string.Format("Caster attack");
+        }
 
-    //         public override void RunAction()
-    //         {
-    //             UnitEntityData maybeCaster = this.Context.MaybeCaster;
-    //             if (maybeCaster == null)
-    //             {
-    //                 UberDebug.LogError((object)"Caster is missing", (object[])Array.Empty<object>());
-    //             }
-    //             else
-    //             {
-    //                 var target = this.Target;
-    //                 if (target == null)
-    //                     return;
+        public override void RunAction()
+        {
+            UnitEntityData maybeCaster = this.Context.MaybeCaster;
+            if (maybeCaster == null)
+            {
+                UberDebug.LogError((object)"Caster is missing", (object[])Array.Empty<object>());
+            }
+            else
+            {
+                var target = this.Target;
+                if (target == null)
+                    return;
 
-    //                 RuleAttackWithWeapon attackWithWeapon = new RuleAttackWithWeapon(maybeCaster, target.Unit, maybeCaster.Body.PrimaryHand.MaybeWeapon, 0);
-    //                 attackWithWeapon.Reason = (RuleReason)this.Context;
-    //                 RuleAttackWithWeapon rule = attackWithWeapon;
-    //                 // Log.Write("TEST");
-    //                 // Log.Write("Weapon range is "+maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters);
-    //                 // Log.Write("Distance to target is "+maybeCaster.DistanceTo(target.Unit));
-    //                 if (maybeCaster.DistanceTo(target.Unit) <= maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters)
-    //                 {
-    //                     Log.Write("Attacking");
-    //                     this.Context.TriggerRule<RuleAttackWithWeapon>(rule);
-    //                     if (rule.AttackRoll.IsHit)
-    //                     {
-    //                         action_on_success?.Run();
-    //                     }
-    //                     else
-    //                     {
-    //                         action_on_miss?.Run();
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
+                RuleAttackWithWeapon attackWithWeapon = new RuleAttackWithWeapon(maybeCaster, target.Unit, maybeCaster.Body.PrimaryHand.MaybeWeapon, 0);
+                attackWithWeapon.Reason = (RuleReason)this.Context;
+                RuleAttackWithWeapon rule = attackWithWeapon;
+                // Log.Write("TEST");
+                // Log.Write("Weapon range is "+maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters);
+                // Log.Write("Distance to target is "+maybeCaster.DistanceTo(target.Unit));
+                if (maybeCaster.DistanceTo(target.Unit) <= maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters)
+                {
+                    Log.Write("Attacking");
+                    this.Context.TriggerRule<RuleAttackWithWeapon>(rule);
+                    if (rule.AttackRoll.IsHit)
+                    {
+                        action_on_success?.Run();
+                    }
+                    else
+                    {
+                        action_on_miss?.Run();
+                    }
+                }
+            }
+        }
+    }
 
 }
 
