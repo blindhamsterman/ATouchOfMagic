@@ -67,7 +67,6 @@ namespace ATouchOfMagic
 
                     CallOfTheWild.LoadIcons.Image2Sprite.icons_folder = @"./Mods/ATouchOfMagic/Icons/";
                     CallOfTheWild.Helpers.GuidStorage.load(ATouchOfMagic.Properties.Resources.blueprints);
-                    CallOfTheWild.Helpers.Load();
                 
                     ArcaneArcherClass.CreateArcaneArcherClass();
 
@@ -76,7 +75,7 @@ namespace ATouchOfMagic
                     string guid_file_name = @"D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\blueprints.txt";
                     CallOfTheWild.Helpers.GuidStorage.dump(guid_file_name);
 #endif
-                    CallOfTheWild.Helpers.GuidStorage.dump(@"./Mods/CallOfTheWild/loaded_blueprints.txt");
+                    CallOfTheWild.Helpers.GuidStorage.dump(@"./Mods/ATouchOfMagic/loaded_blueprints.txt");
                 }
                 catch (Exception ex)
                 {
