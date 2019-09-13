@@ -1,0 +1,17 @@
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\blueprints.txt
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\info.json
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\settings.json
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\ATouchOfMagic.pdb
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.Properties.Resources.resources
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csproj.GenerateResource.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csproj.CoreCompileInputs.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.pdb
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csprojAssemblyReference.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csprojAssemblyReference.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.Properties.Resources.resources
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csproj.GenerateResource.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csproj.CoreCompileInputs.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.pdb
