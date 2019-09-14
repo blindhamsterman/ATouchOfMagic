@@ -163,7 +163,7 @@ namespace ATouchOfMagic
             CreateEnhanceArrowsBurst();
             CreateHailOfArrows();
             CreateEnhanceArrowsAligned(allowed_weapons);
-            CreateArrowOfDeath();
+            CreateArrowOfDeath(allowed_weapons);
 
             arcaneArcherProgression = Helpers.CreateProgression("ArcaneArcherProgression",
                             arcaneArcher.Name,
@@ -524,7 +524,7 @@ namespace ATouchOfMagic
             hailOfArrows.AddComponent(Helpers.CreateAddFacts(hailOfArrowsAbility));
 
         }
-        static void CreateArrowOfDeath()
+        static void CreateArrowOfDeath(BlueprintWeaponType[] allowed_weapons)
         {
             arrowOfDeathResource = Helpers.CreateAbilityResource("ArrowOfDeathArrowResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             arrowOfDeathResource.SetFixedResource(1);
@@ -559,9 +559,9 @@ namespace ATouchOfMagic
                                             AbilityActivationType.Immediately,
                                             CommandType.Free,
                                             null,
-                                            Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
+                                            Helpers.Create<CallOfTheWild.NewMechanics.ActivatableAbilityMainWeaponTypeAllowed>(c => c.weapon_types = allowed_weapons),
                                             Helpers.CreateActivatableResourceLogic(arrowOfDeathResource, ResourceSpendType.Attack));
-
+            arrowOfDeathActivatableAbility.DeactivateImmediately = true;
             arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathActivatableAbility));
         }
 
