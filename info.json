@@ -2,7 +2,7 @@
   "Id": "ATouchOfMagic",
   "DisplayName": "A Touch of Magic",
   "Author": "Blindhamster",
-  "Version": "1.2.9",
+  "Version": "1.0.0",
   "ManagerVersion": "0.13.0",
   "Requirements": ["CallOfTheWild"],
   "AssemblyName": "ATouchOfMagic.dll",

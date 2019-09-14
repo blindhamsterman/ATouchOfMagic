@@ -32,6 +32,7 @@ using Kingmaker.Blueprints.Items.Ecnchantments;
 using CallOfTheWild;
 using Kingmaker.ElementsSystem;
 using Kingmaker.EntitySystem.Entities;
+using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResourceLogic;
 
 
 namespace ATouchOfMagic
@@ -543,25 +544,25 @@ namespace ATouchOfMagic
             var saveDC = Helpers.Create<ContextCalculateAbilityParams>();
             saveDC.CasterLevel = 20;
             saveDC.StatType = StatType.Charisma;
-            var arrowOfDeathAbility = Helpers.CreateAbility($"ArrowOfDeathAbility",
+
+            var arrowOfDeathBuff = Helpers.CreateBuff(arrowOfDeath.name + "Buff", "Arrow of Death", $"The target of this arrow must make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the arcane archer's Charisma modifier.", "",
+                     arrowOfDeath.Icon, null,
+                     Common.createAddInitiatorAttackWithWeaponTrigger(save_action, range_type: AttackTypeAttackBonus.WeaponRangeType.Ranged, wait_for_attack_to_resolve: true),
+                     saveDC);
+
+            var arrowOfDeathActivatableAbility = Helpers.CreateActivatableAbility("ArrowOfDeathActivatableAbility",
                                             arrowOfDeath.Name,
                                             arrowOfDeath.Description,
                                             "",
                                             arrowOfDeath.Icon,
-                                            AbilityType.Supernatural,
-                                            CommandType.Swift,
-                                            AbilityRange.Weapon,
-                                            "",
-                                            "",
-                                            Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
-                                            action,
+                                            arrowOfDeathBuff,
+                                            AbilityActivationType.Immediately,
+                                            CommandType.Free,
+                                            null,
                                             Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                            saveDC,
-                                            Helpers.CreateResourceLogic(arrowOfDeathResource));
+                                            Helpers.CreateActivatableResourceLogic(arrowOfDeathResource, ResourceSpendType.Attack));
 
-            arrowOfDeathAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: false);
-            arrowOfDeathAbility.NeedEquipWeapons = true;
-            arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathAbility));
+            arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathActivatableAbility));
         }
 
         static public ContextActionAttackInRange createContextActionAttackInRange(ActionList action_on_hit = null, ActionList action_on_miss = null)
