@@ -187,13 +187,10 @@ namespace ATouchOfMagic
             };
 
             arcaneArcherProgression.UIDeterminatorsGroup = new BlueprintFeatureBase[] { arcaneArcherProficiencies };
-            arcaneArcherProgression.UIGroups = new UIGroup[]  {Helpers.CreateUIGroup(arcaneArcherFeat),
-                                                         Helpers.CreateUIGroup(seekerArrow),
-                                                         Helpers.CreateUIGroup(phaseArrow),
-                                                         Helpers.CreateUIGroup(hailOfArrows),
-                                                         Helpers.CreateUIGroup(arrowOfDeath),
+            arcaneArcherProgression.UIGroups = new UIGroup[]  {
+                                                         Helpers.CreateUIGroup(seekerArrow, phaseArrow, hailOfArrows, arrowOfDeath),
                                                          Helpers.CreateUIGroup(enhanceArrowsMagic, enhanceArrowsElemental, enhanceArrowsBurst, enhanceArrowsAligned),
-                                                         Helpers.CreateUIGroup(spellbookSelection, Hinterlander.imbue_arrow)
+                                                         Helpers.CreateUIGroup(spellbookSelection, Hinterlander.imbue_arrow, arcaneArcherFeat)
                                                         };
         }
 
