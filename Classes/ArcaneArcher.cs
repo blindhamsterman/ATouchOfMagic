@@ -76,7 +76,7 @@ namespace ATouchOfMagic
                 "Arrows fired by arcane archers fly at weird and uncanny angles to strike at foes around corners, and can pass through solid objects to hit enemies that cower behind such cover. " +
                 "At the height of their power, arcane archers can fell even the most powerful foes with a single, deadly shot. ");
             // Matched Druid skill progression
-            arcaneArcher.SkillPoints = 3;
+            arcaneArcher.SkillPoints = library.Get<BlueprintCharacterClass>("610d836f3a3a9ed42a4349b62f002e96").SkillPoints;
             arcaneArcher.HitDie = DiceType.D10;
             arcaneArcher.PrestigeClass = true;
 
