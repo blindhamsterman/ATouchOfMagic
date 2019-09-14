@@ -4,8 +4,8 @@
   "Author": "Blindhamster",
   "Version": "1.2.9",
   "ManagerVersion": "0.13.0",
-  "Requirements": [],
+  "Requirements": ["CallOfTheWild"],
   "AssemblyName": "ATouchOfMagic.dll",
   "HomePage": "https://www.nexusmods.com/pathfinderkingmaker/mods/112",
-  "EntryMethod": "Main.Load"
+  "EntryMethod": "ATouchOfMagic.Main.Load"
 }
