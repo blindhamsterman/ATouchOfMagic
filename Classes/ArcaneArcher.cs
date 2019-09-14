@@ -547,7 +547,7 @@ namespace ATouchOfMagic
 
             var arrowOfDeathBuff = Helpers.CreateBuff(arrowOfDeath.name + "Buff", "Arrow of Death", $"The target of this arrow must make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the arcane archer's Charisma modifier.", "",
                      arrowOfDeath.Icon, null,
-                     Common.createAddInitiatorAttackWithWeaponTrigger(save_action, range_type: AttackTypeAttackBonus.WeaponRangeType.Ranged, wait_for_attack_to_resolve: true),
+                     Common.createAddInitiatorAttackWithWeaponTrigger(save_action, range_type: AttackTypeAttackBonus.WeaponRangeType.Ranged, wait_for_attack_to_resolve: false),
                      saveDC);
 
             var arrowOfDeathActivatableAbility = Helpers.CreateActivatableAbility("ArrowOfDeathActivatableAbility",
@@ -561,7 +561,7 @@ namespace ATouchOfMagic
                                             null,
                                             Helpers.Create<CallOfTheWild.NewMechanics.ActivatableAbilityMainWeaponTypeAllowed>(c => c.weapon_types = allowed_weapons),
                                             Helpers.CreateActivatableResourceLogic(arrowOfDeathResource, ResourceSpendType.Attack));
-            // arrowOfDeathActivatableAbility.DeactivateImmediately = true;
+            arrowOfDeathActivatableAbility.DeactivateImmediately = true;
             arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathActivatableAbility));
         }
 
