@@ -561,7 +561,7 @@ namespace ATouchOfMagic
                                             null,
                                             Helpers.Create<CallOfTheWild.NewMechanics.ActivatableAbilityMainWeaponTypeAllowed>(c => c.weapon_types = allowed_weapons),
                                             Helpers.CreateActivatableResourceLogic(arrowOfDeathResource, ResourceSpendType.Attack));
-            arrowOfDeathActivatableAbility.DeactivateImmediately = true;
+            // arrowOfDeathActivatableAbility.DeactivateImmediately = true;
             arrowOfDeath.AddComponent(Helpers.CreateAddFacts(arrowOfDeathActivatableAbility));
         }
 
