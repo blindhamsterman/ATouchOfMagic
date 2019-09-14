@@ -72,7 +72,7 @@ namespace ATouchOfMagic
 
 
 #if DEBUG
-                    string guid_file_name = @"D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\KingmakerRebalance\ATouchOfMagic\blueprints.txt";
+                    string guid_file_name = @"D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\blueprints.txt";
                     CallOfTheWild.Helpers.GuidStorage.dump(guid_file_name);
 #endif
                     CallOfTheWild.Helpers.GuidStorage.dump(@"./Mods/ATouchOfMagic/loaded_blueprints.txt");
