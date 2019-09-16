@@ -1,0 +1,9 @@
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\bin\Debug\blueprints.txt
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\bin\Debug\info.json
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\bin\Debug\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\bin\Debug\ATouchOfMagic.pdb
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug\ATouchOfMagic.Properties.Resources.resources
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug\ATouchOfMagic.csproj.GenerateResource.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug\ATouchOfMagic.csproj.CoreCompileInputs.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug\ATouchOfMagic.pdb
