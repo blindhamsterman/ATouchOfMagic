@@ -61,11 +61,11 @@ namespace ATouchOfMagic.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to HunterClass	32486dcfda61462fbfd66b5644786b39	Kingmaker.Blueprints.Classes.BlueprintCharacterClass
-        ///AdditionalAnimalFocusFeature	896f036314b049bfa723b74b0e509a89	Kingmaker.Blueprints.Classes.BlueprintFeature
-        ///MouseFocus1Buff	35e970a820614e1e92d8f616f70a6785	Kingmaker.UnitLogic.Buffs.Blueprints.BlueprintBuff
-        ///MouseFocus1	9a1f080c968a4bd0ada30bf35ee7aa34	Kingmaker.UnitLogic.ActivatableAbilities.BlueprintActivatableAbility
-        ///MouseFocus2Buff	8bd28d45179441a2962a1acc3ed679d2	Kingmaker.UnitLogic.Buffs.Blueprints.Bl [rest of string was truncated]&quot;;.
+        ///   Looks up a localized string similar to ArcaneArcherClass	0fbf5e3fe02f4db19492659dc8a3c411	Kingmaker.Blueprints.Classes.BlueprintCharacterClass
+        /// ArcaneArcherProgression	780848b1fb1f4d73a4f1bf64ae5c21b2	Kingmaker.Blueprints.Classes.BlueprintProgression
+        /// ArcaneArcherProficiencies	85be49f802ec4156ad34a3b88dd64fb5	Kingmaker.Blueprints.Classes.BlueprintFeature
+        /// ArcaneArcherSpellbookSelection	ea4c7c56d90d413886876152b03f9f5f	Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection
+        /// ArcaneArcherEnhanceArrows	f64aa29727344ed9b7fa7918943d3038	Kingmaker.Blueprints.Classes.Bl [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string blueprints {
             get {

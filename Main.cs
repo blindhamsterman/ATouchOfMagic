@@ -66,7 +66,13 @@ namespace ATouchOfMagic
                     Main.DebugLog("Loading A Touch of Magic");
 
                     CallOfTheWild.LoadIcons.Image2Sprite.icons_folder = @"./Mods/ATouchOfMagic/Icons/";
-                    CallOfTheWild.Helpers.GuidStorage.load(ATouchOfMagic.Properties.Resources.blueprints);
+#if DEBUG
+                    bool allow_guid_generation = true;
+#else
+                    bool allow_guid_generation = false; //no guids should be ever generated in release
+#endif
+                    CallOfTheWild.Helpers.GuidStorage.load(Properties.Resources.blueprints, allow_guid_generation);
+
                 
                     ArcaneArcherClass.CreateArcaneArcherClass();
 
