@@ -609,9 +609,22 @@ namespace ATouchOfMagic
             var resource = Helpers.CreateAbilityResource("EnhanceArrowsLevel5Resource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             resource.SetFixedResource(1);
 
-            var applyFaerieFire = Helpers.CreateActionList(Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
-            Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Minutes)));
+            // var applyFaerieFire = Helpers.CreateActionList(Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
+            // Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Rounds)));
 
+            var blur = library.Get<BlueprintBuff>("dd3ad347240624d46a11a092b4dd4674");
+            var displacement = library.Get<BlueprintBuff>("00402bae4442a854081264e498e7a833");
+            var invisibility = library.Get<BlueprintBuff>("525f980cb29bc2240b93e953974cb325");
+            var greaterInvisibility = library.Get<BlueprintBuff>("e6b35473a237a6045969253beb09777c");
+            var mist = library.Get<BlueprintBuff>("61b312b8f91cc48418768b77cd6dcc02");
+            var checkConcealment = Helpers.CreateConditionsCheckerOr(Helpers.CreateConditionHasBuff(blur),
+                        Helpers.CreateConditionHasBuff(displacement),
+                        Helpers.CreateConditionHasBuff(invisibility),
+                        Helpers.CreateConditionHasBuff(greaterInvisibility),
+                        Helpers.CreateConditionHasBuff(mist));
+            var applyFaerieFire = Helpers.CreateActionList(Helpers.CreateConditional(checkConcealment, ifTrue: Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
+            Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Rounds))));
+                
 
             //buffs
             var name = "EnhanceArrows";
