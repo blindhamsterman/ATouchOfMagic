@@ -1,0 +1,7 @@
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\blueprints.txt
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\info.json
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\ATouchOfMagic.dll
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\ReleaseInstall\ATouchOfMagic.Properties.Resources.resources
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\ReleaseInstall\ATouchOfMagic.csproj.GenerateResource.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\ReleaseInstall\ATouchOfMagic.csproj.CoreCompileInputs.cache
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\ReleaseInstall\ATouchOfMagic.dll

@@ -33,6 +33,10 @@ using CallOfTheWild;
 using Kingmaker.ElementsSystem;
 using Kingmaker.EntitySystem.Entities;
 using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResourceLogic;
+using Kingmaker.UnitLogic.Buffs.Blueprints;
+using Kingmaker.Blueprints.Facts;
+using Kingmaker.Items;
+using Kingmaker.UnitLogic.FactLogic;
 
 
 namespace ATouchOfMagic
@@ -41,10 +45,14 @@ namespace ATouchOfMagic
     {
         static LibraryScriptableObject library => Main.library;
         static internal BlueprintCharacterClass arcaneArcher;
-        static internal BlueprintCharacterClass[] arcaneArcherArray;
+        // static internal BlueprintCharacterClass[] arcaneArcherArray;
         static internal BlueprintProgression arcaneArcherProgression;
         static internal BlueprintFeature enhanceArrowsMagic;
         static internal BlueprintFeature enhanceArrowsElemental;
+        static internal BlueprintAbilityResource enhanceArrowsElementalResource;
+        static internal BlueprintBuff fireArrowBuff;
+        static internal BlueprintBuff frostArrowBuff;
+        static internal BlueprintBuff shockArrowBuff;
         static internal BlueprintFeature enhanceArrowsDistance;
         static internal BlueprintFeature enhanceArrowsBurst;
         static internal BlueprintFeature enhanceArrowsAligned;
@@ -59,6 +67,10 @@ namespace ATouchOfMagic
         static internal BlueprintFeature arrowOfDeath;
         static internal BlueprintAbilityResource arrowOfDeathResource;
         static internal BlueprintFeature arcaneArcherProficiencies;
+        static internal BlueprintFeature expandedEnhanceArrows;
+        static internal BlueprintBuff corrosiveArrowBuff;
+        static internal BlueprintFeature corrosiveArrowsFeature;
+        static internal BlueprintFeature specialArrowsFeature;
 
         internal static void CreateArcaneArcherClass()
         {
@@ -158,12 +170,17 @@ namespace ATouchOfMagic
             CreateSpellbookSelection();
             CreateEnhanceArrowsElemental(allowed_weapons);
             CreateSeekerArrow(allowed_weapons);
-            CreateArcheryFeatSelection();
+            
             CreatePhaseArrow(allowed_weapons);
             CreateEnhanceArrowsBurst();
             CreateHailOfArrows();
             CreateEnhanceArrowsAligned(allowed_weapons);
             CreateArrowOfDeath(allowed_weapons);
+
+            //Create class feats
+            CreateExpandedEnhanceArrows(allowed_weapons);
+
+            CreateArcheryFeatSelection();
 
             arcaneArcherProgression = Helpers.CreateProgression("ArcaneArcherProgression",
                             arcaneArcher.Name,
@@ -219,39 +236,45 @@ namespace ATouchOfMagic
 
         static void CreateEnhanceArrowsElemental(BlueprintWeaponType[] allowed_weapons)
         {
-            var resource = Helpers.CreateAbilityResource("EnhanceArrowsElementalResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
-            resource.SetFixedResource(1);
+            enhanceArrowsElementalResource = Helpers.CreateAbilityResource("EnhanceArrowsElementalResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
+            enhanceArrowsElementalResource.SetFixedResource(1);
             var name = "EnhanceArrows";
             var displayName = "Enhance Arrows";
-            var fireArrowBuff = Helpers.CreateBuff(name + "Fire" + "Buff", displayName + " (Fire)", $"Whilst active, your arrows deal 1d6 additional Fire damage.", "",
+            corrosiveArrowBuff = Helpers.CreateBuff(name + "Corrosive" + "Buff", displayName + " (Corrosive)", $"Whilst active, your arrows deal 1d6 additional Acid damage.", "",
+                CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsAcid.png"), null,
+                Helpers.Create<EnhanceArrowsElemental>(u => { u.weapon_types = allowed_weapons; u.damage_type = DamageEnergyType.Acid; }));
+            fireArrowBuff = Helpers.CreateBuff(name + "Fire" + "Buff", displayName + " (Fire)", $"Whilst active, your arrows deal 1d6 additional Fire damage.", "",
                 CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsFire.png"), null,
                 Helpers.Create<EnhanceArrowsElemental>(u => { u.weapon_types = allowed_weapons; u.damage_type = DamageEnergyType.Fire; }));
-            var frostArrowBuff = Helpers.CreateBuff(name + "Frost" + "Buff", displayName + " (Frost)", $"Whilst active, your arrows deal 1d6 additional Frost damage.", "",
+            frostArrowBuff = Helpers.CreateBuff(name + "Frost" + "Buff", displayName + " (Frost)", $"Whilst active, your arrows deal 1d6 additional Frost damage.", "",
                 CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsFrost.png"), null,
                 Helpers.Create<EnhanceArrowsElemental>(u => { u.weapon_types = allowed_weapons; u.damage_type = DamageEnergyType.Cold; }));
-            var shockArrowBuff = Helpers.CreateBuff(name + "Shock" + "Buff", displayName + " (Shock)", $"Whilst active, your arrows deal 1d6 additional Shock damage.", "",
+            shockArrowBuff = Helpers.CreateBuff(name + "Shock" + "Buff", displayName + " (Shock)", $"Whilst active, your arrows deal 1d6 additional Shock damage.", "",
                 CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsShock.png"), null,
                 Helpers.Create<EnhanceArrowsElemental>(u => { u.weapon_types = allowed_weapons; u.damage_type = DamageEnergyType.Electricity; }));
 
             var actionFire = Helpers.CreateRunActions(Common.createContextActionApplyBuff(fireArrowBuff,
                 Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
-                Common.createContextActionRemoveBuff(shockArrowBuff), Common.createContextActionRemoveBuff(frostArrowBuff));
+                Common.createContextActionRemoveBuff(shockArrowBuff), Common.createContextActionRemoveBuff(frostArrowBuff),
+                Common.createContextActionRemoveBuff(corrosiveArrowBuff));
             var actionFrost = Helpers.CreateRunActions(Common.createContextActionApplyBuff(frostArrowBuff,
                 Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
-                Common.createContextActionRemoveBuff(shockArrowBuff), Common.createContextActionRemoveBuff(fireArrowBuff));
+                Common.createContextActionRemoveBuff(shockArrowBuff), Common.createContextActionRemoveBuff(fireArrowBuff),
+                Common.createContextActionRemoveBuff(corrosiveArrowBuff));
             var actionShock = Helpers.CreateRunActions(Common.createContextActionApplyBuff(shockArrowBuff,
                 Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
-                Common.createContextActionRemoveBuff(fireArrowBuff), Common.createContextActionRemoveBuff(frostArrowBuff));
+                Common.createContextActionRemoveBuff(fireArrowBuff), Common.createContextActionRemoveBuff(frostArrowBuff),
+                Common.createContextActionRemoveBuff(corrosiveArrowBuff));
 
             var abilityFire = Helpers.CreateAbility("EnhanceArrowsFireAbility",
                 fireArrowBuff.Name, fireArrowBuff.Description, "", fireArrowBuff.Icon, AbilityType.Supernatural, CommandType.Free,
-                AbilityRange.Weapon, "Permanent", "N/A", actionFire, Helpers.CreateResourceLogic(resource));
+                AbilityRange.Weapon, "Permanent", "N/A", actionFire, Helpers.CreateResourceLogic(enhanceArrowsElementalResource));
             var abilityFrost = Helpers.CreateAbility("EnhanceArrowsFrostAbility",
                 frostArrowBuff.Name, frostArrowBuff.Description, "", frostArrowBuff.Icon, AbilityType.Supernatural, CommandType.Free,
-                AbilityRange.Weapon, "Permanent", "N/A", actionFrost, Helpers.CreateResourceLogic(resource));
+                AbilityRange.Weapon, "Permanent", "N/A", actionFrost, Helpers.CreateResourceLogic(enhanceArrowsElementalResource));
             var abilityShock = Helpers.CreateAbility("EnhanceArrowsShockAbility",
                 shockArrowBuff.Name, shockArrowBuff.Description, "", shockArrowBuff.Icon, AbilityType.Supernatural, CommandType.Free,
-                AbilityRange.Weapon, "Permanent", "N/A", actionShock, Helpers.CreateResourceLogic(resource));
+                AbilityRange.Weapon, "Permanent", "N/A", actionShock, Helpers.CreateResourceLogic(enhanceArrowsElementalResource));
 
             enhanceArrowsElemental = Helpers.CreateFeature("ArcaneArcherEnhanceArrowsElemental", "Enhance Arrows (Elemental)",
                 $"At 3rd level, In addition, the arcane archer’s arrows gain a number of additional qualities as he gains additional " +
@@ -264,7 +287,7 @@ namespace ATouchOfMagic
                 Helpers.CreateAddFact(abilityFire),
                 Helpers.CreateAddFact(abilityFrost),
                 Helpers.CreateAddFact(abilityShock),
-                Helpers.CreateAddAbilityResource(resource));
+                Helpers.CreateAddAbilityResource(enhanceArrowsElementalResource));
 
         }
 
@@ -364,6 +387,7 @@ namespace ATouchOfMagic
         {
             arcaneArcherFeat = library.CopyAndAdd<BlueprintFeatureSelection>("6c799d09d5b93f344b9ade0e0c765c2d", "ArcaneArcherFeat", "c7179c618cc84a9283ceb95f2f4fcc46");//archery feat 6
             arcaneArcherFeat.SetDescription("At 5th level an arcane archer gains an additional archery feat.");
+            arcaneArcherFeat.AllFeatures = arcaneArcherFeat.AllFeatures.AddToArray(NewFeats.deadeyes_blessing, expandedEnhanceArrows);
 
         }
         // Not currently using this feature, if we can find a way to get it to work, then it may get added.
@@ -568,6 +592,88 @@ namespace ATouchOfMagic
             c.action_on_success = action_on_hit;
             c.action_on_miss = action_on_miss;
             return c;
+        }
+
+        static void CreateExpandedEnhanceArrows(BlueprintWeaponType[] allowed_weapons)
+        {
+            var actionCorrosive = Helpers.CreateRunActions(Common.createContextActionApplyBuff(corrosiveArrowBuff,
+                Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
+                Common.createContextActionRemoveBuff(shockArrowBuff), Common.createContextActionRemoveBuff(frostArrowBuff),
+                Common.createContextActionRemoveBuff(fireArrowBuff));
+
+            var abilityCorrosive = Helpers.CreateAbility("EnhanceArrowsCorrosiveAbility",
+                corrosiveArrowBuff.Name, corrosiveArrowBuff.Description, "", corrosiveArrowBuff.Icon, AbilityType.Supernatural, CommandType.Free,
+                AbilityRange.Weapon, "Permanent", "N/A", actionCorrosive, Helpers.CreateResourceLogic(enhanceArrowsElementalResource),
+                Helpers.PrerequisiteClassLevel(arcaneArcher, 3));
+
+            var resource = Helpers.CreateAbilityResource("EnhanceArrowsLevel5Resource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
+            resource.SetFixedResource(1);
+
+            var applyFaerieFire = Helpers.CreateActionList(Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
+            Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Minutes)));
+
+
+            //buffs
+            var name = "EnhanceArrows";
+            var displayName = "Enhance Arrows";
+            var ghoustTouchBuff = Helpers.CreateBuff(name + "GhostTouch" + "Buff", displayName + " (Ghoust Touch)",
+                $"Whilst active, your arrows gain the Ghost Touch Enchantment", "",
+                CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsGhost.png"), null,
+                Helpers.Create<EnhanceArrowsGhost>(u => { u.weapon_types = allowed_weapons; }));
+            var limningBuff = Helpers.CreateBuff(name + "Limning" + "Buff", displayName + " (Limning)",
+                $"Whilst active, your arrows gain the Limning Enchantment", "",
+                CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsLimning.png"), null,
+                Common.createAddInitiatorAttackWithWeaponTrigger(applyFaerieFire, check_weapon_range_type: true, range_type: AttackTypeAttackBonus.WeaponRangeType.Ranged, wait_for_attack_to_resolve: false),
+                Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow));
+            var planarBuff = Helpers.CreateBuff(name + "Planar" + "Buff", displayName + " (Planar)",
+                $"Whilst active, your arrows gain the Planar Enchantment", "",
+                CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsPlanar.png"), null,
+                Helpers.Create<EnhanceArrowsPlanar>(u => { u.weapon_types = allowed_weapons; }));
+
+            var actionGhostTouch = Helpers.CreateRunActions(Common.createContextActionApplyBuff(ghoustTouchBuff,
+                Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
+                Common.createContextActionRemoveBuff(limningBuff), Common.createContextActionRemoveBuff(planarBuff));
+            var actionLimning = Helpers.CreateRunActions(Common.createContextActionApplyBuff(limningBuff,
+                Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
+                Common.createContextActionRemoveBuff(ghoustTouchBuff), Common.createContextActionRemoveBuff(planarBuff));
+            var actionPlanar = Helpers.CreateRunActions(Common.createContextActionApplyBuff(planarBuff,
+                Helpers.CreateContextDuration(Helpers.CreateContextValue(AbilityRankType.StatBonus)), is_permanent: true, dispellable: false),
+                Common.createContextActionRemoveBuff(ghoustTouchBuff), Common.createContextActionRemoveBuff(limningBuff));
+
+            var abilityGhostTouch = Helpers.CreateAbility("EnhanceArrowsGhostTouchAbility",
+                ghoustTouchBuff.Name, ghoustTouchBuff.Description, "", ghoustTouchBuff.Icon, AbilityType.Supernatural, CommandType.Free,
+                AbilityRange.Weapon, "Permanent", "N/A", actionGhostTouch, Helpers.CreateResourceLogic(resource),
+                Helpers.PrerequisiteClassLevel(arcaneArcher, 5));
+            var abilityLimning = Helpers.CreateAbility("EnhanceArrowsLimningAbility",
+                limningBuff.Name, limningBuff.Description, "", limningBuff.Icon, AbilityType.Supernatural, CommandType.Free,
+                AbilityRange.Weapon, "Permanent", "N/A", actionLimning, Helpers.CreateResourceLogic(resource),
+                Helpers.PrerequisiteClassLevel(arcaneArcher, 5));
+            var abilityPlanar = Helpers.CreateAbility("EnhanceArrowsPlanarAbility",
+                planarBuff.Name, planarBuff.Description, "", planarBuff.Icon, AbilityType.Supernatural, CommandType.Free,
+                AbilityRange.Weapon, "Permanent", "N/A", actionPlanar, Helpers.CreateResourceLogic(resource),
+                Helpers.PrerequisiteClassLevel(arcaneArcher, 5));
+
+            corrosiveArrowsFeature = Helpers.CreateFeature("CorrosiveArrows", "Enhance Arrows (Corrosive)", "You add corrosive to the list of special properties you can grant your nonmagical arrows with your enhance arrows ability at 3rd level.",
+            "", CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsMagic.png"), FeatureGroup.None, Helpers.CreateAddFact(abilityCorrosive));
+
+            specialArrowsFeature = Helpers.CreateFeature("SpecialArrows", "Enhance Arrows (Special)", "At 5th level, you can add the ghost touch, limning, or planar special ability.",
+             "", CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsMagic.png"), FeatureGroup.None, Helpers.CreateAddFact(abilityGhostTouch),
+             Helpers.CreateAddFact(abilityLimning),
+             Helpers.CreateAddFact(abilityPlanar),
+             Helpers.CreateAddAbilityResource(resource));
+
+            expandedEnhanceArrows = Helpers.CreateFeature("ExpandedEnhanceArrows", "Expanded Enhance Arrows",
+            $"You add corrosive to the list of special properties you can grant your nonmagical arrows with your enhance arrows ability at 3rd level. " +
+            "At 5th level, you can add the ghost touch, limning, or planar special ability. At 7th level, you can add the corrosive burst special " +
+            "ability.",
+            "",
+            CallOfTheWild.LoadIcons.Image2Sprite.Create(@"FeatIcons/Icon_Expanded_Enhanced_Arrows.png"),
+            FeatureGroup.Feat,
+            Helpers.CreateAddFeatureOnClassLevel(corrosiveArrowsFeature, 3, getArcaneArcherArray(), null, false),
+            Helpers.CreateAddFeatureOnClassLevel(specialArrowsFeature, 5, getArcaneArcherArray(), null, false),
+            Helpers.PrerequisiteFeature(enhanceArrowsMagic)
+            );
+            library.AddFeats(expandedEnhanceArrows);
         }
 
     }
@@ -809,6 +915,59 @@ namespace ATouchOfMagic
         }
     }
 
+
+    public class EnhanceArrowsGhost : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RulePrepareDamage>
+    {
+        public BlueprintWeaponType[] weapon_types;
+
+        static LibraryScriptableObject library => Main.library;
+        public void OnEventAboutToTrigger(RulePrepareDamage evt)
+        {
+            ItemEntityWeapon weapon = evt.DamageBundle.Weapon;
+            if (!Array.Exists(weapon_types, t => t == weapon.Blueprint.Type))
+            {
+                return;
+            }
+
+            if (weapon.HasEnchantment(library.Get<BlueprintWeaponEnchantment>("47857e1a5a3ec1a46adf6491b1423b4f")))
+            {
+                return;
+            }
+
+            foreach (BaseDamage baseDamage in evt.DamageBundle)
+            {
+                baseDamage.Reality = DamageRealityType.Ghost;
+            }
+
+        }
+
+        public void OnEventDidTrigger(RulePrepareDamage evt) { }
+
+    }
+
+    public class EnhanceArrowsPlanar : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateDamage>
+    {
+        public BlueprintWeaponType[] weapon_types;
+
+        static LibraryScriptableObject library => Main.library;
+        public void OnEventAboutToTrigger(RuleCalculateDamage evt)
+        {
+            var weapon = Owner.Body.PrimaryHand.HasWeapon ? Owner.Body.PrimaryHand.MaybeWeapon : Owner.Body.EmptyHandWeapon;
+            if (!Array.Exists(weapon_types, t => t == weapon.Blueprint.Type))
+            {
+                return;
+            }
+
+            if (evt.Target.Descriptor.HasFact(library.Get<BlueprintUnitFact>("9054d3988d491d944ac144e27b6bc318")))
+            {
+                evt.DamageBundle.WeaponDamage.SetReductionPenalty(5);
+            }
+
+        }
+
+        public void OnEventDidTrigger(RuleCalculateDamage evt) { }
+
+    }
 }
 
 
