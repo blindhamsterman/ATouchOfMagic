@@ -75,6 +75,7 @@ namespace ATouchOfMagic
 
                 
                     ArcaneArcherClass.CreateArcaneArcherClass();
+                    DeadeyeDevoteeClass.CreateDeadeyeDevoteeClass();
 
 
 #if DEBUG

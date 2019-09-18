@@ -36,7 +36,7 @@ using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResource
 using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.Blueprints.Facts;
 using Kingmaker.Items;
-using Kingmaker.UnitLogic.FactLogic;
+using Kingmaker.UnitLogic.Abilities;
 
 
 namespace ATouchOfMagic
@@ -71,6 +71,7 @@ namespace ATouchOfMagic
         static internal BlueprintBuff corrosiveArrowBuff;
         static internal BlueprintFeature corrosiveArrowsFeature;
         static internal BlueprintFeature specialArrowsFeature;
+    
 
         internal static void CreateArcaneArcherClass()
         {
@@ -146,7 +147,7 @@ namespace ATouchOfMagic
             skipLevels.Add(5);
             skipLevels.Add(9);
             arcaneArcher.AddComponent(Helpers.Create<SkipLevelsForSpellProgression>(s => s.Levels = skipLevels.ToArray()));
-
+            arcaneArcher.AddComponent(Helpers.Create<PrerequisiteNoClassLevel>(c => c.CharacterClass = DeadeyeDevoteeClass.deadeyeDevotee));
             Helpers.RegisterClass(arcaneArcher);
 
         }
@@ -170,7 +171,7 @@ namespace ATouchOfMagic
             CreateSpellbookSelection();
             CreateEnhanceArrowsElemental(allowed_weapons);
             CreateSeekerArrow(allowed_weapons);
-            
+            CreateArcheryFeatSelection();
             CreatePhaseArrow(allowed_weapons);
             CreateEnhanceArrowsBurst();
             CreateHailOfArrows();
@@ -180,7 +181,7 @@ namespace ATouchOfMagic
             //Create class feats
             CreateExpandedEnhanceArrows(allowed_weapons);
 
-            CreateArcheryFeatSelection();
+
 
             arcaneArcherProgression = Helpers.CreateProgression("ArcaneArcherProgression",
                             arcaneArcher.Name,
@@ -624,7 +625,7 @@ namespace ATouchOfMagic
                         Helpers.CreateConditionHasBuff(mist));
             var applyFaerieFire = Helpers.CreateActionList(Helpers.CreateConditional(checkConcealment, ifTrue: Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
             Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Rounds))));
-                
+
 
             //buffs
             var name = "EnhanceArrows";
@@ -981,6 +982,8 @@ namespace ATouchOfMagic
         public void OnEventDidTrigger(RuleCalculateDamage evt) { }
 
     }
+
+
 }
 
 
