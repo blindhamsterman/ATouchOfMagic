@@ -27,6 +27,8 @@ using Kingmaker.Designers;
 using Kingmaker.UnitLogic.Mechanics.Actions;
 using Kingmaker.Blueprints.Facts;
 using Kingmaker.EntitySystem.Persistence.Versioning;
+using Kingmaker.UnitLogic.Mechanics;
+using Kingmaker.UnitLogic.Mechanics.Components;
 
 namespace ATouchOfMagic
 {
@@ -228,49 +230,86 @@ namespace ATouchOfMagic
 
             int maxVariants = 6; //due to ui limitation
 
-            var spellArray = new List<BlueprintAbility>();
-            spellArray.Add(library.Get<BlueprintAbility>("651110ed4f117a948b41c05c5c7624c0")); //inflictCriticalWounds
-            spellArray.Add(library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19")); //inflictCriticalWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("e5af3674bb241f14b9a9f6b0c7dc3d27")); //inflictLightWounds
-            spellArray.Add(library.Get<BlueprintAbility>("9da37873d79ef0a468f969e4e5116ad2")); //inflictLightWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("65f0b63c45ea82a4f8b8325768a3832d")); //inflictModerateWounds
-            spellArray.Add(library.Get<BlueprintAbility>("03944622fbe04824684ec29ff2cec6a7")); //inflictModerateWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("bd5da98859cf2b3418f6d68ea66cabbe")); //inflictSeriousWounds
-            spellArray.Add(library.Get<BlueprintAbility>("820170444d4d2a14abc480fcbdb49535")); //inflictSeriousWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("41c9016596fe1de4faf67425ed691203")); //cureCriticalWounds
-            spellArray.Add(library.Get<BlueprintAbility>("1f173a16120359e41a20fc75bb53d449")); //cureCriticalWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("5590652e1c2225c4ca30c4a699ab3649")); //cureLightWounds
-            spellArray.Add(library.Get<BlueprintAbility>("5d3d689392e4ff740a761ef346815074")); //cureLightWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("6b90c773a6543dc49b2505858ce33db5")); //cureModerateWounds
-            spellArray.Add(library.Get<BlueprintAbility>("571221cc141bc21449ae96b3944652aa")); //cureModerateWoundsMass
-            spellArray.Add(library.Get<BlueprintAbility>("3361c5df793b4c8448756146a88026ad")); //cureSeriousWounds
-            spellArray.Add(library.Get<BlueprintAbility>("0cea35de4d553cc439ae80b3a8724397")); //cureSeriousWoundsMass
+            var inflictSpellArray = new List<BlueprintAbility>();
+            var cureSpellArray = new List<BlueprintAbility>();
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("651110ed4f117a948b41c05c5c7624c0")); //inflictCriticalWounds
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19")); //inflictCriticalWoundsMass
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("e5af3674bb241f14b9a9f6b0c7dc3d27")); //inflictLightWounds
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("9da37873d79ef0a468f969e4e5116ad2")); //inflictLightWoundsMass
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("65f0b63c45ea82a4f8b8325768a3832d")); //inflictModerateWounds
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("03944622fbe04824684ec29ff2cec6a7")); //inflictModerateWoundsMass
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("bd5da98859cf2b3418f6d68ea66cabbe")); //inflictSeriousWounds
+            inflictSpellArray.Add(library.Get<BlueprintAbility>("820170444d4d2a14abc480fcbdb49535")); //inflictSeriousWoundsMass
+            cureSpellArray.Add(library.Get<BlueprintAbility>("41c9016596fe1de4faf67425ed691203")); //cureCriticalWounds
+            cureSpellArray.Add(library.Get<BlueprintAbility>("1f173a16120359e41a20fc75bb53d449")); //cureCriticalWoundsMass
+            cureSpellArray.Add(library.Get<BlueprintAbility>("5590652e1c2225c4ca30c4a699ab3649")); //cureLightWounds
+            cureSpellArray.Add(library.Get<BlueprintAbility>("5d3d689392e4ff740a761ef346815074")); //cureLightWoundsMass
+            cureSpellArray.Add(library.Get<BlueprintAbility>("6b90c773a6543dc49b2505858ce33db5")); //cureModerateWounds
+            cureSpellArray.Add(library.Get<BlueprintAbility>("571221cc141bc21449ae96b3944652aa")); //cureModerateWoundsMass
+            cureSpellArray.Add(library.Get<BlueprintAbility>("3361c5df793b4c8448756146a88026ad")); //cureSeriousWounds
+            cureSpellArray.Add(library.Get<BlueprintAbility>("0cea35de4d553cc439ae80b3a8724397")); //cureSeriousWoundsMass
 
-            Predicate<AbilityData> checkSlotPredicate = delegate (AbilityData spell)
+            Predicate<AbilityData> checkSlotPredicateI = delegate (AbilityData spell)
             {
-                return (spellArray.Contains(spell.Blueprint))
+                return (inflictSpellArray.Contains(spell.Blueprint))
+                        && (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
+                        && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
+            };
+
+            Predicate<AbilityData> checkSlotPredicateC = delegate (AbilityData spell)
+            {
+                return (cureSpellArray.Contains(spell.Blueprint))
                         && (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
             var undeadType = library.Get<BlueprintFeature>("734a29b693e9ec346ba2951b27987e33");
-            var dice = Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageBonus));
+            var dice = Helpers.CreateContextDiceValue(DiceType.D8, Common.createSimpleContextValue(1), Helpers.CreateContextValue(AbilityRankType.DamageBonus));
             var healAction = Common.createContextActionHealTarget(dice);
             var damageUndeadAction = Helpers.CreateActionDealDamage(DamageEnergyType.PositiveEnergy, dice);
             var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
 
-            var positive = Helpers.CreateRunActions(Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
-                            damageUndeadAction,
-                            healAction));
-            var negative = Helpers.CreateRunActions(Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
+            var hitInflictAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
                             healAction,
                             damageLivingAction));
-            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+            var hitCureAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
+                            damageUndeadAction,
+                            healAction));
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
+            
             for (int i = 0; i < maxVariants; i++)
             {
-                var energyArrowAbility = Helpers.CreateAbility($"DeadeyeDevoteeEnergyArrow{i + 1}Ability",
+                var energyArrowInflicAbility = Helpers.CreateAbility($"DeadeyeDevoteeInflictEnergyArrow{i + 1}Ability",
+                                                          energyArrow.Name,
+                                                          energyArrow.Description,
+                                                          "",
+                                                          CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/enhanceArrowsUnholy.png"),
+                                                          AbilityType.Supernatural,
+                                                          CommandType.Standard,
+                                                          AbilityRange.Weapon,
+                                                          "",
+                                                          "",
+                                                          Helpers.Create<CallOfTheWild.SpellManipulationMechanics.InferIsFullRoundFromParamSpellSlot>(),
+                                                          Helpers.Create<CallOfTheWild.NewMechanics.AttackAnimation>(),
+                                                          Helpers.Create<CallOfTheWild.SpellManipulationMechanics.AbilityStoreSpellInFact>(s =>
+                                                                                            {
+                                                                                                s.fact = energyArrow;
+                                                                                                s.check_slot_predicate = checkSlotPredicateI;
+                                                                                                s.variant = i;
+                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitInflictAction, missAction));
+                                                                                            }),
+                                                          Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
+                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(1, DiceType.Zero)}),
+                                                          Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
+                energyArrowInflicAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
+                energyArrowInflicAbility.NeedEquipWeapons = true;
+
+                energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowInflicAbility));
+            }
+            for (int i = 0; i < maxVariants; i++)
+            {
+                var energyArrowCureAbility = Helpers.CreateAbility($"DeadeyeDevoteeCureEnergyArrow{i + 1}Ability",
                                                           energyArrow.Name,
                                                           energyArrow.Description,
                                                           "",
@@ -285,18 +324,28 @@ namespace ATouchOfMagic
                                                           Helpers.Create<CallOfTheWild.SpellManipulationMechanics.AbilityStoreSpellInFact>(s =>
                                                                                             {
                                                                                                 s.fact = energyArrow;
-                                                                                                s.check_slot_predicate = checkSlotPredicate;
+                                                                                                s.check_slot_predicate = checkSlotPredicateC;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitAction, missAction));
+                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitCureAction, missAction));
                                                                                             }),
-                                                          Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow)
+                                                          Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
+                                                          createContextWeaponDamageDiceReplacement(Helpers.CreateContextValue(AbilityRankType.Default),new DiceFormula[] {new DiceFormula(1, DiceType.Zero)})
                                                           );
-                energyArrowAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
-                energyArrowAbility.NeedEquipWeapons = true;
+                energyArrowCureAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
+                energyArrowCureAbility.NeedEquipWeapons = true;
 
-                energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowAbility));
+                energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowCureAbility));
             }
         }
+
+        static public CallOfTheWild.NewMechanics.ContextWeaponDamageDiceReplacement createContextWeaponDamageDiceReplacement(ContextValue value, params DiceFormula[] dice_formulas)
+        {
+            var c = Helpers.Create<CallOfTheWild.NewMechanics.ContextWeaponDamageDiceReplacement>();
+            c.value = value;
+            c.dice_formulas = dice_formulas;
+            return c;
+        }
+
 
     }
 
