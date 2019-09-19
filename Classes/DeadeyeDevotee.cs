@@ -252,10 +252,8 @@ namespace ATouchOfMagic
             
             Predicate<AbilityData> checkSlotPredicate = delegate (AbilityData spell)
             {   
-                return 
-                (spellArray.HasItem(spell.Blueprint))
-                        && 
-                        (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
+                return (Array.Exists<BlueprintAbility>(spellArray, e => e.name == spell.Blueprint.name))
+                        && (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
