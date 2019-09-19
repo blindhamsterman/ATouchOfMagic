@@ -22,7 +22,8 @@ using static Kingmaker.UnitLogic.Commands.Base.UnitCommand;
 using Kingmaker.UnitLogic.Alignments;
 using CallOfTheWild;
 using Kingmaker.UnitLogic.Abilities;
-
+using Kingmaker.RuleSystem.Rules;
+using Kingmaker.Designers;
 
 namespace ATouchOfMagic
 {
@@ -223,39 +224,39 @@ namespace ATouchOfMagic
                                                 Helpers.Create<CallOfTheWild.SpellManipulationMechanics.FactStoreSpell>(f => f.ignore_target_checkers = true));
 
 
-            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Common.createContextActionHealTarget(Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageDice))));
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
             int maxVariants = 6; //due to ui limitation
-
-            var inflictCriticalWounds = library.Get<BlueprintAbility>("3cf05ef7606f06446ad357845cb4d430");
-            var inflictCriticalWoundsMass = library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19");
-            var inflictLightWounds = library.Get<BlueprintAbility>("e5cb4c4459e437e49a4cd73fde6b9063");
-            var inflictLightWoundsMass = library.Get<BlueprintAbility>("9da37873d79ef0a468f969e4e5116ad2");
-            var inflictModerateWounds = library.Get<BlueprintAbility>("14d749ecacca90a42b6bf1c3f580bb0c");
-            var inflictModerateWoundsMass = library.Get<BlueprintAbility>("03944622fbe04824684ec29ff2cec6a7");
-            var inflictSeriousWounds = library.Get<BlueprintAbility>("b0b8a04a3d74e03489862b03f4e467a6");
-            var inflictSeriousWoundsMass = library.Get<BlueprintAbility>("820170444d4d2a14abc480fcbdb49535");
-            var cureCriticalWounds = library.Get<BlueprintAbility>("0d657aa811b310e4bbd8586e60156a2d");
-            var cureCriticalWoundsMass = library.Get<BlueprintAbility>("1f173a16120359e41a20fc75bb53d449");
-            var cureLightWounds = library.Get<BlueprintAbility>("47808d23c67033d4bbab86a1070fd62f");
-            var cureLightWoundsMass = library.Get<BlueprintAbility>("5d3d689392e4ff740a761ef346815074");
-            var cureModerateWounds = library.Get<BlueprintAbility>("1c1ebf5370939a9418da93176cc44cd9");
-            var cureModerateWoundsMass = library.Get<BlueprintAbility>("571221cc141bc21449ae96b3944652aa");
-            var cureSeriousWounds = library.Get<BlueprintAbility>("6e81a6679a0889a429dec9cedcf3729c");
-            var cureSeriousWoundsMass = library.Get<BlueprintAbility>("0cea35de4d553cc439ae80b3a8724397");
-
-            var spellArray = new List<BlueprintAbility>().ToArray();
-            spellArray.AddToArray(inflictCriticalWounds, inflictCriticalWoundsMass, inflictLightWounds, inflictLightWoundsMass, inflictModerateWounds, inflictModerateWoundsMass,
-            inflictSeriousWounds, inflictSeriousWoundsMass, cureCriticalWounds, cureCriticalWoundsMass, cureLightWounds, cureLightWoundsMass, cureModerateWounds, cureModerateWoundsMass,
-            cureSeriousWounds, cureSeriousWoundsMass);
+            
+            var spellArray = new List<BlueprintAbility>();
+            spellArray.Add(library.Get<BlueprintAbility>("651110ed4f117a948b41c05c5c7624c0")); //inflictCriticalWounds
+            spellArray.Add(library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19")); //inflictCriticalWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("e5af3674bb241f14b9a9f6b0c7dc3d27")); //inflictLightWounds
+            spellArray.Add(library.Get<BlueprintAbility>("9da37873d79ef0a468f969e4e5116ad2")); //inflictLightWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("65f0b63c45ea82a4f8b8325768a3832d")); //inflictModerateWounds
+            spellArray.Add(library.Get<BlueprintAbility>("03944622fbe04824684ec29ff2cec6a7")); //inflictModerateWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("bd5da98859cf2b3418f6d68ea66cabbe")); //inflictSeriousWounds
+            spellArray.Add(library.Get<BlueprintAbility>("820170444d4d2a14abc480fcbdb49535")); //inflictSeriousWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("41c9016596fe1de4faf67425ed691203")); //cureCriticalWounds
+            spellArray.Add(library.Get<BlueprintAbility>("1f173a16120359e41a20fc75bb53d449")); //cureCriticalWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("5590652e1c2225c4ca30c4a699ab3649")); //cureLightWounds
+            spellArray.Add(library.Get<BlueprintAbility>("5d3d689392e4ff740a761ef346815074")); //cureLightWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("6b90c773a6543dc49b2505858ce33db5")); //cureModerateWounds
+            spellArray.Add(library.Get<BlueprintAbility>("571221cc141bc21449ae96b3944652aa")); //cureModerateWoundsMass
+            spellArray.Add(library.Get<BlueprintAbility>("3361c5df793b4c8448756146a88026ad")); //cureSeriousWounds
+            spellArray.Add(library.Get<BlueprintAbility>("0cea35de4d553cc439ae80b3a8724397")); //cureSeriousWoundsMass
             
             Predicate<AbilityData> checkSlotPredicate = delegate (AbilityData spell)
             {   
-                return (Array.Exists<BlueprintAbility>(spellArray, e => e.name == spell.Blueprint.name))
+                return (spellArray.Contains(spell.Blueprint))
                         && (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
+
+               var inflictDamage = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy,
+                                                                  Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageDice))
+                                                                  );
 
             for (int i = 0; i < maxVariants; i++)
             {
@@ -279,7 +280,7 @@ namespace ATouchOfMagic
                                                                                                 s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          Helpers.Create<EnergyArrowReplaceDamage>(u => { u.damageType = DamageEnergyType.PositiveEnergy; })
+                                                          Helpers.Create<heal>()
                                                           );
                 energyArrowAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowAbility.NeedEquipWeapons = true;
@@ -291,25 +292,19 @@ namespace ATouchOfMagic
     }
 
 
-    public class EnergyArrowReplaceDamage : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateDamage>
-    {
 
-        public DamageEnergyType damageType;
+    public class heal : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateDamage>
+    {
 
         static LibraryScriptableObject library => Main.library;
         public void OnEventAboutToTrigger(RuleCalculateDamage evt)
         {
-
-            foreach (BaseDamage baseDamage in evt.DamageBundle)
-            {
-                EnergyDamage energyDamage = baseDamage as EnergyDamage;
-                energyDamage.ReplaceEnergy(damageType);
-            }
-
+            evt.DamageBundle.Clear();
         }
 
-        public void OnEventDidTrigger(RuleCalculateDamage evt) { }
-
+        public void OnEventDidTrigger(RuleCalculateDamage evt)
+        {
+        }
     }
 
 }
