@@ -36,7 +36,6 @@ using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResource
 using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.Blueprints.Facts;
 using Kingmaker.Items;
-using Kingmaker.UnitLogic.Abilities;
 
 
 namespace ATouchOfMagic
@@ -71,6 +70,7 @@ namespace ATouchOfMagic
         static internal BlueprintBuff corrosiveArrowBuff;
         static internal BlueprintFeature corrosiveArrowsFeature;
         static internal BlueprintFeature specialArrowsFeature;
+        static internal BlueprintFeature extraHailOfArrows;
     
 
         internal static void CreateArcaneArcherClass()
@@ -147,7 +147,6 @@ namespace ATouchOfMagic
             skipLevels.Add(5);
             skipLevels.Add(9);
             arcaneArcher.AddComponent(Helpers.Create<SkipLevelsForSpellProgression>(s => s.Levels = skipLevels.ToArray()));
-            arcaneArcher.AddComponent(Helpers.Create<PrerequisiteNoClassLevel>(c => c.CharacterClass = DeadeyeDevoteeClass.deadeyeDevotee));
             Helpers.RegisterClass(arcaneArcher);
 
         }
@@ -171,7 +170,7 @@ namespace ATouchOfMagic
             CreateSpellbookSelection();
             CreateEnhanceArrowsElemental(allowed_weapons);
             CreateSeekerArrow(allowed_weapons);
-            CreateArcheryFeatSelection();
+            
             CreatePhaseArrow(allowed_weapons);
             CreateEnhanceArrowsBurst();
             CreateHailOfArrows();
@@ -180,7 +179,7 @@ namespace ATouchOfMagic
 
             //Create class feats
             CreateExpandedEnhanceArrows(allowed_weapons);
-
+            CreateArcheryFeatSelection();
 
 
             arcaneArcherProgression = Helpers.CreateProgression("ArcaneArcherProgression",
@@ -472,10 +471,10 @@ namespace ATouchOfMagic
             phaseArrowResource = Helpers.CreateAbilityResource("PhaseArrowResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             phaseArrowResource.SetIncreasedByLevelStartPlusDivStep(0, 6, 1, 2, 1, 0, 0.0f, getArcaneArcherArray());
             phaseArrow = Helpers.CreateFeature("ArcaneArcherPhaseArrow", "Phase Arrow",
-            $"At 6th level, an arcane archer can launch an arrow once per day at a target known to him within range, and the arrow travels " +
+            $"At 6th level, an archer can launch an arrow once per day at a target known to him within range, and the arrow travels " +
             "to the target in a straight path, passing through any nonmagical barrier or wall in its way. (Any magical barrier stops the arrow.) " +
             "This ability negates cover, concealment, armor, and shield modifiers, but otherwise the attack is rolled normally. Using this ability " +
-            "is a standard action (and shooting the arrow is part of the action). An arcane archer can use this ability once per day at 6th level, " +
+            "is a standard action (and shooting the arrow is part of the action). An archer can use this ability once per day at 6th level, " +
             "and one additional time per day for every two levels beyond 6th, to a maximum of three times per day at 10th level.",
             "",
              Helpers.GetIcon("2c38da66e5a599347ac95b3294acbe00"), // truestrike
@@ -518,7 +517,7 @@ namespace ATouchOfMagic
             hailOfArrowsResource = Helpers.CreateAbilityResource("HailofArrowsResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             hailOfArrowsResource.SetFixedResource(1);
             hailOfArrows = Helpers.CreateFeature("ArcaneArcherHailofArrows", "Hail of Arrows",
-            $"In lieu of his regular attacks, once per day an arcane archer of 8th level or higher can fire an arrow at each and every " +
+            $"In lieu of his regular attacks, once per day an archer of 8th level or higher can fire an arrow at each and every " +
             "target within range. Each attack uses the archer’s primary attack bonus, and each enemy may only be targeted by a single arrow",
             "",
             CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/hailOfArrows.png"),
@@ -551,9 +550,9 @@ namespace ATouchOfMagic
             arrowOfDeathResource = Helpers.CreateAbilityResource("ArrowOfDeathArrowResource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             arrowOfDeathResource.SetFixedResource(1);
             arrowOfDeath = Helpers.CreateFeature("ArcaneArcherArrowOfDeath", "Arrow of Death",
-            $"At 10th level, an arcane archer can create a special type of slaying arrow that forces the target, if damaged by the arrow’s " +
-            "attack, to make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the arcane archer’s Charisma modifier. " +
-            "It takes 1 day to make a slaying arrow, and the arrow only functions for the arcane archer who created it. The slaying arrow lasts no " +
+            $"At 10th level, an archer can create a special type of slaying arrow that forces the target, if damaged by the arrow’s " +
+            "attack, to make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the archer’s Charisma modifier. " +
+            "It takes 1 day to make a slaying arrow, and the arrow only functions for the archer who created it. The slaying arrow lasts no " +
             "longer than 1 year, and the archer can only have one such arrow in existence at a time.",
             "",
             CallOfTheWild.LoadIcons.Image2Sprite.Create(@"ArcaneArcher/arrowOfDeath.png"),
@@ -595,6 +594,19 @@ namespace ATouchOfMagic
             return c;
         }
 
+        //TODO
+        static void CreateExtraHailOfArrows()
+        {
+            extraHailOfArrows = Helpers.CreateFeature("ExtraHailOfArrows", "Extra Hail of Arrows",
+            $"You can use your hail of arrows ability one additional time per day",
+            "",
+            CallOfTheWild.LoadIcons.Image2Sprite.Create(@"FeatIcons/Icon_Expanded_Enhanced_Arrows.png"),
+            FeatureGroup.CombatFeat,
+            Helpers.PrerequisiteFeature(hailOfArrows)
+            );
+            library.AddFeats(extraHailOfArrows);
+        }
+
         static void CreateExpandedEnhanceArrows(BlueprintWeaponType[] allowed_weapons)
         {
             var actionCorrosive = Helpers.CreateRunActions(Common.createContextActionApplyBuff(corrosiveArrowBuff,
@@ -609,9 +621,6 @@ namespace ATouchOfMagic
 
             var resource = Helpers.CreateAbilityResource("EnhanceArrowsLevel5Resource", "", "", "", library.Get<BlueprintFeature>("6aa84ca8918ac604685a3d39a13faecc").Icon);
             resource.SetFixedResource(1);
-
-            // var applyFaerieFire = Helpers.CreateActionList(Common.createContextActionApplyBuff(library.Get<BlueprintBuff>("cc383a9eaae4d2b45a925d442b367b54"),
-            // Helpers.CreateContextDuration(Common.createSimpleContextValue(1), DurationRate.Rounds)));
 
             var blur = library.Get<BlueprintBuff>("dd3ad347240624d46a11a092b4dd4674");
             var displacement = library.Get<BlueprintBuff>("00402bae4442a854081264e498e7a833");

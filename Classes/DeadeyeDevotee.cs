@@ -7,35 +7,20 @@ using Kingmaker.Blueprints.Classes.Prerequisites;
 using Kingmaker.Blueprints.Classes.Selection;
 using Kingmaker.Blueprints.Classes.Spells;
 using Kingmaker.Blueprints.Items.Weapons;
-using Kingmaker.Designers.Mechanics.Facts;
 using Kingmaker.EntitySystem.Stats;
 using Kingmaker.Enums;
 using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem;
-using Kingmaker.RuleSystem.Rules;
 using System;
 using Kingmaker.Utility;
 using Kingmaker.Enums.Damage;
 using Kingmaker.UnitLogic;
 using System.Collections.Generic;
 using Kingmaker.RuleSystem.Rules.Damage;
-using Kingmaker.UnitLogic.Mechanics;
-using Kingmaker.UnitLogic.Abilities.Components;
-using Kingmaker.UnitLogic.Mechanics.Components;
 using Kingmaker.UnitLogic.Abilities.Blueprints;
-using Kingmaker.UnitLogic.ActivatableAbilities;
-using Kingmaker.UnitLogic.Mechanics.Actions;
 using static Kingmaker.UnitLogic.Commands.Base.UnitCommand;
 using Kingmaker.UnitLogic.Alignments;
-using Kingmaker.UnitLogic.Abilities.Components.CasterCheckers;
-using Kingmaker.Blueprints.Items.Ecnchantments;
 using CallOfTheWild;
-using Kingmaker.ElementsSystem;
-using Kingmaker.EntitySystem.Entities;
-using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResourceLogic;
-using Kingmaker.UnitLogic.Buffs.Blueprints;
-using Kingmaker.Blueprints.Facts;
-using Kingmaker.Items;
 using Kingmaker.UnitLogic.Abilities;
 
 
@@ -48,18 +33,7 @@ namespace ATouchOfMagic
         // static internal BlueprintCharacterClass[] deadeyeDevoteeArray;
         static internal BlueprintProgression deadeyeDevoteeProgression;
         static internal BlueprintFeature energyArrow;
-        static internal BlueprintAbilityResource energyArrowResource;
         static internal BlueprintFeatureSelection divineSpellbookSelection;
-
-        static internal BlueprintFeature enhanceArrowsMagic;
-        static internal BlueprintFeature enhanceArrowsElemental;
-        static internal BlueprintFeature enhanceArrowsDistance;
-        static internal BlueprintFeature enhanceArrowsBurst;
-        static internal BlueprintFeature enhanceArrowsAligned;
-        static internal BlueprintFeatureSelection deadeyeDevoteeArcherFeat;
-        static internal BlueprintFeature phaseArrow;
-        static internal BlueprintFeature hailOfArrows;
-        static internal BlueprintFeature arrowOfDeath;
         static internal BlueprintFeature deadeyeDevoteeProficiencies;
 
 
@@ -75,18 +49,20 @@ namespace ATouchOfMagic
             deadeyeDevotee.name = "DeadeyeDevoteeClass";
             library.AddAsset(deadeyeDevotee, "");
             deadeyeDevotee.LocalizedName = Helpers.CreateString("deadeyeDevotee.Name", "Deadeye Devotee");
-            deadeyeDevotee.LocalizedDescription = Helpers.CreateString("ArcanedeadeyeDevotee.Description",
+            deadeyeDevotee.LocalizedDescription = Helpers.CreateString("deadeyeDevotee.Description",
                 "Dedicated followers of Erastil become closer to their god by mastering archery and caring for each other. They can tap into the power of the Elk Father, who guides and empowers their arrows. ");
             // Matched Druid skill progression
             deadeyeDevotee.SkillPoints = library.Get<BlueprintCharacterClass>("610d836f3a3a9ed42a4349b62f002e96").SkillPoints;
             deadeyeDevotee.HitDie = DiceType.D10;
             deadeyeDevotee.PrestigeClass = true;
 
+            var pointBlankShot = library.Get<BlueprintFeature>("0da0c194d6e1d43419eb8d990b28e0ab"); // Point Blank Shot
             var preciseShot = library.Get<BlueprintFeature>("8f3d1e6b4be006f4d896081f2f889665"); // Precise Shot
             var weaponFocus = library.Get<BlueprintParametrizedFeature>("1e1f627d26ad36f43bbd26cc2bf8ac7e"); // Weapon Focus;
-            var sbow = WeaponCategory.Shortbow;
+
             var lbow = WeaponCategory.Longbow;
             deadeyeDevotee.SetComponents(
+                pointBlankShot.PrerequisiteFeature(),
                 preciseShot.PrerequisiteFeature(),
                 Common.createPrerequisiteParametrizedFeatureWeapon(weaponFocus, lbow, any: true),
                 StatType.BaseAttackBonus.PrerequisiteStatValue(6),
@@ -134,9 +110,18 @@ namespace ATouchOfMagic
             skipLevels.Add(5);
             skipLevels.Add(9);
             deadeyeDevotee.AddComponent(Helpers.Create<SkipLevelsForSpellProgression>(s => s.Levels = skipLevels.ToArray()));
-            deadeyeDevotee.AddComponent(Helpers.Create<PrerequisiteNoClassLevel>(c => c.CharacterClass = ArcaneArcherClass.arcaneArcher));
+            deadeyeDevotee.AddComponent(PrerequisiteNoClassLevel(ArcaneArcherClass.arcaneArcher));
             Helpers.RegisterClass(deadeyeDevotee);
+            // ensure the player cannot have both arcane archer and deadeye devotee 
+            ArcaneArcherClass.arcaneArcher.AddComponent(PrerequisiteNoClassLevel(DeadeyeDevoteeClass.deadeyeDevotee));
+        }
 
+        public static PrerequisiteNoClassLevel PrerequisiteNoClassLevel(this BlueprintCharacterClass @class, bool any = false)
+        {
+            var result = Helpers.Create<PrerequisiteNoClassLevel>();
+            result.CharacterClass = @class;
+            result.Group = any ? Prerequisite.GroupType.Any : Prerequisite.GroupType.All;
+            return result;
         }
 
 
@@ -156,6 +141,8 @@ namespace ATouchOfMagic
 
             CreateEnergyArrow();
             CreateDivineSpellbookSelection();
+            CreateDeadeyeDevoteeProficiencies();
+            CreateDeadeyeDevoteeFeatures();
 
 
             deadeyeDevoteeProgression = Helpers.CreateProgression("DeadeyeDevoteeProgression",
@@ -167,22 +154,22 @@ namespace ATouchOfMagic
             deadeyeDevoteeProgression.Classes = getDeadeyeDevoteeArray();
 
             deadeyeDevoteeProgression.LevelEntries = new LevelEntry[] {
-                Helpers.LevelEntry(1, deadeyeDevoteeProficiencies, enhanceArrowsMagic),
+                Helpers.LevelEntry(1, deadeyeDevoteeProficiencies, ArcaneArcherClass.enhanceArrowsMagic),
                 Helpers.LevelEntry(2, Hinterlander.imbue_arrow, divineSpellbookSelection),
-                Helpers.LevelEntry(3, enhanceArrowsElemental),
+                Helpers.LevelEntry(3, ArcaneArcherClass.enhanceArrowsElemental),
                 Helpers.LevelEntry(4, energyArrow),
                 Helpers.LevelEntry(5, ArcaneArcherClass.arcaneArcherFeat), // Distant arrows aren't possible, providing a feat for this level seems reasonable seeing as the class also doesn't get spellcasting here.
-                Helpers.LevelEntry(6, phaseArrow),
-                Helpers.LevelEntry(7, enhanceArrowsBurst),
-                Helpers.LevelEntry(8, hailOfArrows),
-                Helpers.LevelEntry(9, enhanceArrowsAligned),
-                Helpers.LevelEntry(10, arrowOfDeath)
+                Helpers.LevelEntry(6, ArcaneArcherClass.phaseArrow),
+                Helpers.LevelEntry(7, ArcaneArcherClass.enhanceArrowsBurst),
+                Helpers.LevelEntry(8, ArcaneArcherClass.hailOfArrows),
+                Helpers.LevelEntry(9, ArcaneArcherClass.enhanceArrowsAligned),
+                Helpers.LevelEntry(10, ArcaneArcherClass.arrowOfDeath)
             };
 
             deadeyeDevoteeProgression.UIDeterminatorsGroup = new BlueprintFeatureBase[] { deadeyeDevoteeProficiencies };
             deadeyeDevoteeProgression.UIGroups = new UIGroup[]  {
-                                                         Helpers.CreateUIGroup(energyArrow, phaseArrow, hailOfArrows, arrowOfDeath),
-                                                         Helpers.CreateUIGroup(enhanceArrowsMagic, enhanceArrowsElemental, enhanceArrowsBurst, enhanceArrowsAligned),
+                                                         Helpers.CreateUIGroup(energyArrow, ArcaneArcherClass.phaseArrow, ArcaneArcherClass.hailOfArrows, ArcaneArcherClass.arrowOfDeath),
+                                                         Helpers.CreateUIGroup(ArcaneArcherClass.enhanceArrowsMagic, ArcaneArcherClass.enhanceArrowsElemental, ArcaneArcherClass.enhanceArrowsBurst, ArcaneArcherClass.enhanceArrowsAligned),
                                                          Helpers.CreateUIGroup(divineSpellbookSelection, Hinterlander.imbue_arrow, ArcaneArcherClass.arcaneArcherFeat)
                                                         };
         }
@@ -190,58 +177,20 @@ namespace ATouchOfMagic
 
         static void CreateDeadeyeDevoteeFeatures()
         {
-            deadeyeDevoteeProficiencies = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.arcaneArcherProficiencies.AssetGuid
-            , "DeadeyeDevoteeProficiencies", "", "");
-            deadeyeDevoteeProficiencies.SetName("Deadeye Devotee Proficiencies");
-            deadeyeDevoteeProficiencies.SetDescription("A deadeye devotee is proficient with all simple and martial weapons, light armor, medium armor, and shields");
-
-            enhanceArrowsMagic = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.enhanceArrowsMagic.AssetGuid
-            , "DeadeyeDevoteeEnhanceArrowsMagic", "", "");
-            enhanceArrowsMagic.SetDescription($"At 1st level, every nonmagical arrow a deadeye devotee nocks and lets fly becomes magical, gaining a +1 enhancement bonus. " +
-                "Unlike magic weapons created by normal means, the archer need not spend gold pieces to accomplish this task. However, an archer’s " +
-                "magic arrows only function for him.");
-
-            enhanceArrowsElemental = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.enhanceArrowsElemental.AssetGuid
-            , "DeadeyeDevoteeEnhanceArrowsElemental", "", "");
-            enhanceArrowsElemental.SetDescription($"At 3rd level, In addition, the deadeye devotee’s arrows gain a number of additional qualities as he gains additional " +
-                "levels. The elemental, elemental burst, and aligned qualities can be changed once per day, when the deadeye devotee prepares " +
-                "spells or, in the case of spontaneous spellcasters, after 8 hours of rest." +
-                "\n At 3rd level, every non-magical arrow fired by an deadeye devotee gains one of the following elemental themed weapon qualities: flaming, frost, or shock.");
-
-            enhanceArrowsBurst = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.enhanceArrowsBurst.AssetGuid
-            , "DeadeyeDevoteeEnhanceArrowsBurst", "", "");
-            enhanceArrowsBurst.SetDescription($"At 7th level, every non-magical arrow fired by a deadeye devotee gains one of the following elemental burst weapon qualities: " +
-                "flaming burst, icy burst, or shocking burst. This ability replaces the ability gained at 3rd level.");
-
-            enhanceArrowsAligned = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.enhanceArrowsAligned.AssetGuid
-            , "DeadeyeDevoteeEnhanceArrowsAligned", "", "");
-            enhanceArrowsAligned.SetDescription("At 9th level, every non-magical arrow fired by a deadeye devotee gains one of the following aligned weapon qualities: " +
-                "anarchic, axiomatic, holy, or unholy. The deadeye devotee cannot choose an ability that is the opposite of his alignment " +
-                "(for example, a lawful good deadeye devotee could not choose anarchic or unholy as his weapon quality).");
-
-            phaseArrow = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.phaseArrow.AssetGuid
-       , "DeadeyeDevoteePhaseArrow", "", "");
-            phaseArrow.SetDescription("At 6th level, a deadeye devotee can launch an arrow once per day at a target known to him within range, and the arrow travels " +
-            "to the target in a straight path, passing through any nonmagical barrier or wall in its way. (Any magical barrier stops the arrow.) " +
-            "This ability negates cover, concealment, armor, and shield modifiers, but otherwise the attack is rolled normally. Using this ability " +
-            "is a standard action (and shooting the arrow is part of the action). A deadeye devotee can use this ability once per day at 6th level, " +
-            "and one additional time per day for every two levels beyond 6th, to a maximum of three times per day at 10th level.");
-            
-            hailOfArrows = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.hailOfArrows.AssetGuid
-       , "DeadeyeDevoteeHailOfArrows", "", "");
-            hailOfArrows.SetDescription("In lieu of his regular attacks, once per day a deadeye devotee of 8th level or higher can fire an arrow at each and every " +
-            "target within range. Each attack uses the archer’s primary attack bonus, and each enemy may only be targeted by a single arrow");
-            
-            arrowOfDeath = library.CopyAndAdd<BlueprintFeature>(ArcaneArcherClass.arrowOfDeath.AssetGuid
-       , "DeadeyeDevoteeArrowOfDeath", "", "");
-            arrowOfDeath.SetDescription("At 10th level, a deadeye devotee can create a special type of slaying arrow that forces the target, if damaged by the arrow’s " +
-            "attack, to make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the deadeye devotee’s Charisma modifier. " +
-            "It takes 1 day to make a slaying arrow, and the arrow only functions for the deadeye devotee who created it. The slaying arrow lasts no " +
-            "longer than 1 year, and the archer can only have one such arrow in existence at a time.");
-
             //expanded arrows feat
             ArcaneArcherClass.expandedEnhanceArrows.AddComponent(Helpers.CreateAddFeatureOnClassLevel(ArcaneArcherClass.corrosiveArrowsFeature, 3, getDeadeyeDevoteeArray(), null, false));
             ArcaneArcherClass.expandedEnhanceArrows.AddComponent(Helpers.CreateAddFeatureOnClassLevel(ArcaneArcherClass.specialArrowsFeature, 5, getDeadeyeDevoteeArray(), null, false));
+
+        }
+
+        static void CreateDeadeyeDevoteeProficiencies()
+        {
+            deadeyeDevoteeProficiencies = library.CopyAndAdd<BlueprintFeature>(
+            "c5e479367d07d62428f2fe92f39c0341", // ranger proficiencies
+            "DeadeyeDevoteeProficiencies",
+            "");
+            deadeyeDevoteeProficiencies.SetName("Deadeye Devotee Proficiencies");
+            deadeyeDevoteeProficiencies.SetDescription("A deadeye devotee is proficient with all simple and martial weapons, light armor, medium armor, and shields");
 
         }
 
@@ -274,10 +223,10 @@ namespace ATouchOfMagic
                                                 Helpers.Create<CallOfTheWild.SpellManipulationMechanics.FactStoreSpell>(f => f.ignore_target_checkers = true));
 
 
-            var hit_action = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
-            var miss_action = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+            var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
-            int max_variants = 6; //due to ui limitation
+            int maxVariants = 6; //due to ui limitation
 
             var inflictCriticalWounds = library.Get<BlueprintAbility>("3cf05ef7606f06446ad357845cb4d430");
             var inflictCriticalWoundsMass = library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19");
@@ -300,17 +249,19 @@ namespace ATouchOfMagic
             spellArray.AddToArray(inflictCriticalWounds, inflictCriticalWoundsMass, inflictLightWounds, inflictLightWoundsMass, inflictModerateWounds, inflictModerateWoundsMass,
             inflictSeriousWounds, inflictSeriousWoundsMass, cureCriticalWounds, cureCriticalWoundsMass, cureLightWounds, cureLightWoundsMass, cureModerateWounds, cureModerateWoundsMass,
             cureSeriousWounds, cureSeriousWoundsMass);
-
-            Predicate<AbilityData> check_slot_predicate = delegate (AbilityData spell)
-            {
-                return (spellArray.HasItem(spell.Blueprint))
-                        && (!spell.Blueprint.HasVariants || spell.Variants.Count < max_variants)
+            
+            Predicate<AbilityData> checkSlotPredicate = delegate (AbilityData spell)
+            {   
+                return 
+                (spellArray.HasItem(spell.Blueprint))
+                        && 
+                        (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
-            for (int i = 0; i < max_variants; i++)
+            for (int i = 0; i < maxVariants; i++)
             {
-                var imbue_ability = Helpers.CreateAbility($"DeadeyeDevoteeEnergyArrow{i + 1}Ability",
+                var energyArrowAbility = Helpers.CreateAbility($"DeadeyeDevoteeEnergyArrow{i + 1}Ability",
                                                           energyArrow.Name,
                                                           energyArrow.Description,
                                                           "",
@@ -325,17 +276,17 @@ namespace ATouchOfMagic
                                                           Helpers.Create<CallOfTheWild.SpellManipulationMechanics.AbilityStoreSpellInFact>(s =>
                                                                                             {
                                                                                                 s.fact = energyArrow;
-                                                                                                s.check_slot_predicate = check_slot_predicate;
+                                                                                                s.check_slot_predicate = checkSlotPredicate;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hit_action, miss_action));
+                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          Helpers.Create<EnhanceArrowsAligned>(u => { u.damage_type = DamageEnergyType.PositiveEnergy; })
+                                                          Helpers.Create<EnergyArrowReplaceDamage>(u => { u.damageType = DamageEnergyType.PositiveEnergy; })
                                                           );
-                imbue_ability.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
-                imbue_ability.NeedEquipWeapons = true;
+                energyArrowAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
+                energyArrowAbility.NeedEquipWeapons = true;
 
-                energyArrow.AddComponent(Helpers.CreateAddFacts(imbue_ability));
+                energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowAbility));
             }
         }
 
@@ -345,7 +296,7 @@ namespace ATouchOfMagic
     public class EnergyArrowReplaceDamage : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateDamage>
     {
 
-        public DamageEnergyType damage_type;
+        public DamageEnergyType damageType;
 
         static LibraryScriptableObject library => Main.library;
         public void OnEventAboutToTrigger(RuleCalculateDamage evt)
@@ -354,7 +305,7 @@ namespace ATouchOfMagic
             foreach (BaseDamage baseDamage in evt.DamageBundle)
             {
                 EnergyDamage energyDamage = baseDamage as EnergyDamage;
-                energyDamage.ReplaceEnergy(damage_type);
+                energyDamage.ReplaceEnergy(damageType);
             }
 
         }
