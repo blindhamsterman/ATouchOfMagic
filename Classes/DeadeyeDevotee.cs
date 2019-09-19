@@ -24,6 +24,9 @@ using CallOfTheWild;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.RuleSystem.Rules;
 using Kingmaker.Designers;
+using Kingmaker.UnitLogic.Mechanics.Actions;
+using Kingmaker.Blueprints.Facts;
+using Kingmaker.EntitySystem.Persistence.Versioning;
 
 namespace ATouchOfMagic
 {
@@ -223,12 +226,8 @@ namespace ATouchOfMagic
                                                 FeatureGroup.None,
                                                 Helpers.Create<CallOfTheWild.SpellManipulationMechanics.FactStoreSpell>(f => f.ignore_target_checkers = true));
 
-
-            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Common.createContextActionHealTarget(Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageDice))));
-            var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
-
             int maxVariants = 6; //due to ui limitation
-            
+
             var spellArray = new List<BlueprintAbility>();
             spellArray.Add(library.Get<BlueprintAbility>("651110ed4f117a948b41c05c5c7624c0")); //inflictCriticalWounds
             spellArray.Add(library.Get<BlueprintAbility>("5ee395a2423808c4baf342a4f8395b19")); //inflictCriticalWoundsMass
@@ -246,17 +245,28 @@ namespace ATouchOfMagic
             spellArray.Add(library.Get<BlueprintAbility>("571221cc141bc21449ae96b3944652aa")); //cureModerateWoundsMass
             spellArray.Add(library.Get<BlueprintAbility>("3361c5df793b4c8448756146a88026ad")); //cureSeriousWounds
             spellArray.Add(library.Get<BlueprintAbility>("0cea35de4d553cc439ae80b3a8724397")); //cureSeriousWoundsMass
-            
+
             Predicate<AbilityData> checkSlotPredicate = delegate (AbilityData spell)
-            {   
+            {
                 return (spellArray.Contains(spell.Blueprint))
                         && (!spell.Blueprint.HasVariants || spell.Variants.Count < maxVariants)
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
-               var inflictDamage = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy,
-                                                                  Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageDice))
-                                                                  );
+            var undeadType = library.Get<BlueprintFeature>("734a29b693e9ec346ba2951b27987e33");
+            var dice = Helpers.CreateContextDiceValue(DiceType.D8, Helpers.CreateContextValue(AbilityRankType.DamageBonus));
+            var healAction = Common.createContextActionHealTarget(dice);
+            var damageUndeadAction = Helpers.CreateActionDealDamage(DamageEnergyType.PositiveEnergy, dice);
+            var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
+
+            var positive = Helpers.CreateRunActions(Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
+                            damageUndeadAction,
+                            healAction));
+            var negative = Helpers.CreateRunActions(Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
+                            healAction,
+                            damageLivingAction));
+            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+            var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
             for (int i = 0; i < maxVariants; i++)
             {
@@ -279,8 +289,7 @@ namespace ATouchOfMagic
                                                                                                 s.variant = i;
                                                                                                 s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitAction, missAction));
                                                                                             }),
-                                                          Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          Helpers.Create<heal>()
+                                                          Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow)
                                                           );
                 energyArrowAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowAbility.NeedEquipWeapons = true;
@@ -289,22 +298,6 @@ namespace ATouchOfMagic
             }
         }
 
-    }
-
-
-
-    public class heal : OwnedGameLogicComponent<UnitDescriptor>, IInitiatorRulebookHandler<RuleCalculateDamage>
-    {
-
-        static LibraryScriptableObject library => Main.library;
-        public void OnEventAboutToTrigger(RuleCalculateDamage evt)
-        {
-            evt.DamageBundle.Clear();
-        }
-
-        public void OnEventDidTrigger(RuleCalculateDamage evt)
-        {
-        }
     }
 
 }
