@@ -265,18 +265,14 @@ namespace ATouchOfMagic
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
-            var undeadType = library.Get<BlueprintFeature>("734a29b693e9ec346ba2951b27987e33");
-            var dice = Helpers.CreateContextDiceValue(DiceType.D8, Common.createSimpleContextValue(1), Helpers.CreateContextValue(AbilityRankType.DamageBonus));
-            var healAction = Common.createContextActionHealTarget(dice);
-            var damageUndeadAction = Helpers.CreateActionDealDamage(DamageEnergyType.PositiveEnergy, dice);
-            var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
+            // var undeadType = library.Get<BlueprintFeature>("734a29b693e9ec346ba2951b27987e33");
+            // var dice = Helpers.CreateContextDiceValue(DiceType.D8, Common.createSimpleContextValue(1), Helpers.CreateContextValue(AbilityRankType.DamageBonus));
+            // var healAction = Common.createContextActionHealTarget(dice);
+            // var damageUndeadAction = Helpers.CreateActionDealDamage(DamageEnergyType.PositiveEnergy, dice);
+            // var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
 
-            var hitInflictAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
-                            healAction,
-                            damageLivingAction));
-            var hitCureAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow), Helpers.CreateConditional(Common.createContextConditionHasFact(undeadType),
-                            damageUndeadAction,
-                            healAction));
+            var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
+   
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
 
@@ -299,7 +295,7 @@ namespace ATouchOfMagic
                                                                                                 s.fact = energyArrow;
                                                                                                 s.check_slot_predicate = checkSlotPredicateI;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(createContextActionFakeTouchAttack(hitInflictAction, missAction));
+                                                                                                s.actions = Helpers.CreateActionList(CreateEnergyArrowAction(hitAction, missAction, DamageEnergyType.NegativeEnergy));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                                           Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
@@ -327,7 +323,7 @@ namespace ATouchOfMagic
                                                                                                 s.fact = energyArrow;
                                                                                                 s.check_slot_predicate = checkSlotPredicateC;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(createContextActionFakeTouchAttack(hitCureAction, missAction));
+                                                                                                s.actions = Helpers.CreateActionList(CreateEnergyArrowAction(hitAction, missAction, DamageEnergyType.PositiveEnergy));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
                                                           Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
@@ -337,20 +333,23 @@ namespace ATouchOfMagic
                 energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowCureAbility));
             }
         }
-        static public ContextActionFakeTouchAttack createContextActionFakeTouchAttack(ActionList action_on_hit = null, ActionList action_on_miss = null)
+        static public EnergyArrow CreateEnergyArrowAction(ActionList action_on_hit = null, ActionList action_on_miss = null, DamageEnergyType damageType = DamageEnergyType.PositiveEnergy)
         {
-            var c = Helpers.Create<ContextActionFakeTouchAttack>();
+            var c = Helpers.Create<EnergyArrow>();
             c.action_on_success = action_on_hit;
             c.action_on_miss = action_on_miss;
+            c.damageType = damageType;
             return c;
         }
 
     }
 
-    public class ContextActionFakeTouchAttack : ContextAction
+    public class EnergyArrow : ContextAction
     {
         public ActionList action_on_success = null;
         public ActionList action_on_miss = null;
+        public DamageEnergyType damageType;
+        static LibraryScriptableObject library => Main.library;
         public override string GetCaption()
         {
             return string.Format("Caster attack");
@@ -374,9 +373,59 @@ namespace ATouchOfMagic
                 attackWithWeapon.AttackType = AttackType.RangedTouch;
                 RuleAttackRoll rule = attackWithWeapon;
                 this.Context.TriggerRule<RuleAttackRoll>(rule);
+
+                RuleCalculateWeaponStats weaponRule = new RuleCalculateWeaponStats(maybeCaster, weapon, (RuleAttackWithWeapon)null);
+                this.Context.TriggerRule<RuleCalculateWeaponStats>(weaponRule);
+                DamageBundle damage = (DamageBundle)null;
+                foreach (DamageDescription damageDescription in weaponRule.DamageDescription)
+                {
+                    if (damage == null)
+                        damage = new DamageBundle(weapon, weaponRule.WeaponSize, damageDescription.CreateDamage());
+                    else
+                        damage.Add(damageDescription.CreateDamage());
+                }
+
                 if (rule.IsHit)
                 {
                     action_on_success?.Run();
+                    if (damageType == DamageEnergyType.PositiveEnergy)
+                    {
+                        if (target.Unit.Descriptor.HasFact(library.Get<BlueprintUnitFact>("734a29b693e9ec346ba2951b27987e33")))
+                        {
+                            foreach (var i in damage)
+                            {
+                                i.CreateTypeDescription().Energy = damageType;
+                            }
+                            this.Context.TriggerRule<RuleDealDamage>(new RuleDealDamage(this.Context.MaybeCaster, this.Target.Unit, damage));
+                        }
+                        else
+                        {
+                            foreach (var i in damage)
+                            {
+                                this.Context.TriggerRule<RuleHealDamage>(new RuleHealDamage(this.Context.MaybeCaster, this.Target.Unit, i.Dice, i.Bonus));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (target.Unit.Descriptor.HasFact(library.Get<BlueprintUnitFact>("734a29b693e9ec346ba2951b27987e33")))
+                        {
+                            foreach (var i in damage)
+                            {
+                                this.Context.TriggerRule<RuleHealDamage>(new RuleHealDamage(this.Context.MaybeCaster, this.Target.Unit, i.Dice, i.Bonus));
+
+                            }
+
+                        }
+                        else
+                        {
+                            foreach (var i in damage)
+                            {
+                                i.CreateTypeDescription().Energy = damageType;
+                            }
+                            this.Context.TriggerRule<RuleDealDamage>(new RuleDealDamage(this.Context.MaybeCaster, this.Target.Unit, damage));
+                        }
+                    }
                 }
                 else
                 {
