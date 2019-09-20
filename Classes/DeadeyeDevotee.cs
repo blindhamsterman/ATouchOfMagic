@@ -29,6 +29,8 @@ using Kingmaker.Blueprints.Facts;
 using Kingmaker.EntitySystem.Persistence.Versioning;
 using Kingmaker.UnitLogic.Mechanics;
 using Kingmaker.UnitLogic.Mechanics.Components;
+using Kingmaker.ElementsSystem;
+using Kingmaker.EntitySystem.Entities;
 
 namespace ATouchOfMagic
 {
@@ -277,7 +279,7 @@ namespace ATouchOfMagic
                             healAction));
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
-            
+
             for (int i = 0; i < maxVariants; i++)
             {
                 var energyArrowInflicAbility = Helpers.CreateAbility($"DeadeyeDevoteeInflictEnergyArrow{i + 1}Ability",
@@ -297,10 +299,9 @@ namespace ATouchOfMagic
                                                                                                 s.fact = energyArrow;
                                                                                                 s.check_slot_predicate = checkSlotPredicateI;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitInflictAction, missAction));
+                                                                                                s.actions = Helpers.CreateActionList(createContextActionFakeTouchAttack(hitInflictAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(0, DiceType.Zero)}),
                                                           Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
                 energyArrowInflicAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowInflicAbility.NeedEquipWeapons = true;
@@ -326,10 +327,9 @@ namespace ATouchOfMagic
                                                                                                 s.fact = energyArrow;
                                                                                                 s.check_slot_predicate = checkSlotPredicateC;
                                                                                                 s.variant = i;
-                                                                                                s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitCureAction, missAction));
+                                                                                                s.actions = Helpers.CreateActionList(createContextActionFakeTouchAttack(hitCureAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(0, DiceType.Zero)}),
                                                           Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
                 energyArrowCureAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowCureAbility.NeedEquipWeapons = true;
@@ -337,16 +337,53 @@ namespace ATouchOfMagic
                 energyArrow.AddComponent(Helpers.CreateAddFacts(energyArrowCureAbility));
             }
         }
-
-        static public CallOfTheWild.NewMechanics.ContextWeaponDamageDiceReplacement createContextWeaponDamageDiceReplacement(ContextValue value, params DiceFormula[] dice_formulas)
+        static public ContextActionFakeTouchAttack createContextActionFakeTouchAttack(ActionList action_on_hit = null, ActionList action_on_miss = null)
         {
-            var c = Helpers.Create<CallOfTheWild.NewMechanics.ContextWeaponDamageDiceReplacement>();
-            c.value = value;
-            c.dice_formulas = dice_formulas;
+            var c = Helpers.Create<ContextActionFakeTouchAttack>();
+            c.action_on_success = action_on_hit;
+            c.action_on_miss = action_on_miss;
             return c;
         }
 
+    }
 
+    public class ContextActionFakeTouchAttack : ContextAction
+    {
+        public ActionList action_on_success = null;
+        public ActionList action_on_miss = null;
+        public override string GetCaption()
+        {
+            return string.Format("Caster attack");
+        }
+
+        public override void RunAction()
+        {
+            UnitEntityData maybeCaster = this.Context.MaybeCaster;
+            if (maybeCaster == null)
+            {
+                UberDebug.LogError((object)"Caster is missing", (object[])Array.Empty<object>());
+            }
+            else
+            {
+                var target = this.Target;
+                if (target == null)
+                    return;
+                var weapon = maybeCaster.Body.PrimaryHand.MaybeWeapon;
+                RuleAttackRoll attackWithWeapon = new RuleAttackRoll(maybeCaster, target.Unit, weapon, 0);
+                attackWithWeapon.Reason = (RuleReason)this.Context;
+                attackWithWeapon.AttackType = AttackType.RangedTouch;
+                RuleAttackRoll rule = attackWithWeapon;
+                this.Context.TriggerRule<RuleAttackRoll>(rule);
+                if (rule.IsHit)
+                {
+                    action_on_success?.Run();
+                }
+                else
+                {
+                    action_on_miss?.Run();
+                }
+            }
+        }
     }
 
 
