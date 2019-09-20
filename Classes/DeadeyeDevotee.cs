@@ -300,7 +300,7 @@ namespace ATouchOfMagic
                                                                                                 s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitInflictAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(1, DiceType.Zero)}),
+                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(0, DiceType.Zero)}),
                                                           Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
                 energyArrowInflicAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowInflicAbility.NeedEquipWeapons = true;
@@ -329,8 +329,8 @@ namespace ATouchOfMagic
                                                                                                 s.actions = Helpers.CreateActionList(Common.createContextActionAttack(hitCureAction, missAction));
                                                                                             }),
                                                           Common.createAbilityCasterMainWeaponCheck(WeaponCategory.Longbow, WeaponCategory.Shortbow),
-                                                          createContextWeaponDamageDiceReplacement(Helpers.CreateContextValue(AbilityRankType.Default),new DiceFormula[] {new DiceFormula(1, DiceType.Zero)})
-                                                          );
+                                                          createContextWeaponDamageDiceReplacement(Common.createSimpleContextValue(0),new DiceFormula[] {new DiceFormula(0, DiceType.Zero)}),
+                                                          Helpers.CreateContextRankConfig(baseValueType: ContextRankBaseValueType.StatBonus, stat: StatType.Strength, type: AbilityRankType.DamageBonus));
                 energyArrowCureAbility.setMiscAbilityParametersSingleTargetRangedHarmful(works_on_allies: true);
                 energyArrowCureAbility.NeedEquipWeapons = true;
 
@@ -348,6 +348,7 @@ namespace ATouchOfMagic
 
 
     }
+
 
 }
 
