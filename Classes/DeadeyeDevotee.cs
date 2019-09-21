@@ -272,7 +272,7 @@ namespace ATouchOfMagic
             // var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
 
             var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
-   
+
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
 
@@ -379,6 +379,11 @@ namespace ATouchOfMagic
                 DamageBundle damage = (DamageBundle)null;
                 foreach (DamageDescription damageDescription in weaponRule.DamageDescription)
                 {
+                    damageDescription.TypeDescription = new DamageTypeDescription()
+                    {
+                        Type = DamageType.Energy,
+                        Energy = this.damageType
+                    };
                     if (damage == null)
                         damage = new DamageBundle(weapon, weaponRule.WeaponSize, damageDescription.CreateDamage());
                     else
@@ -388,14 +393,10 @@ namespace ATouchOfMagic
                 if (rule.IsHit)
                 {
                     action_on_success?.Run();
-                    if (damageType == DamageEnergyType.PositiveEnergy)
+                    if (this.damageType == DamageEnergyType.PositiveEnergy)
                     {
                         if (target.Unit.Descriptor.HasFact(library.Get<BlueprintUnitFact>("734a29b693e9ec346ba2951b27987e33")))
                         {
-                            foreach (var i in damage)
-                            {
-                                i.CreateTypeDescription().Energy = damageType;
-                            }
                             this.Context.TriggerRule<RuleDealDamage>(new RuleDealDamage(this.Context.MaybeCaster, this.Target.Unit, damage));
                         }
                         else
@@ -419,10 +420,6 @@ namespace ATouchOfMagic
                         }
                         else
                         {
-                            foreach (var i in damage)
-                            {
-                                i.CreateTypeDescription().Energy = damageType;
-                            }
                             this.Context.TriggerRule<RuleDealDamage>(new RuleDealDamage(this.Context.MaybeCaster, this.Target.Unit, damage));
                         }
                     }
