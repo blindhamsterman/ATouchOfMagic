@@ -19,7 +19,23 @@ namespace ATouchOfMagic
 {
     internal class Main
     {
-     
+     internal class Settings
+        {
+            internal bool bestMentalStat { get; }
+
+            internal Settings()
+            {
+
+                using (StreamReader settings_file = File.OpenText("Mods/ATouchOfMagic/settings.json"))
+                using (JsonTextReader reader = new JsonTextReader(settings_file))
+                {
+                    JObject jo = (JObject)JToken.ReadFrom(reader);
+                    bestMentalStat = (bool)jo["bestMentalStat"];
+                }
+            }
+        }
+
+        static internal Settings settings = new Settings();
         internal static UnityModManagerNet.UnityModManager.ModEntry.ModLogger logger;
         internal static LibraryScriptableObject library;
 

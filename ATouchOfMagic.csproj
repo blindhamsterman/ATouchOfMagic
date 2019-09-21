@@ -151,6 +151,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Repository.json" />
+      <None Include="settings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

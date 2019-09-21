@@ -36,6 +36,10 @@ using static Kingmaker.UnitLogic.ActivatableAbilities.ActivatableAbilityResource
 using Kingmaker.UnitLogic.Buffs.Blueprints;
 using Kingmaker.Blueprints.Facts;
 using Kingmaker.Items;
+using Kingmaker.RuleSystem.Rules.Abilities;
+using Kingmaker.Blueprints.Validation;
+using System.Linq;
+using Kingmaker.UnitLogic.Abilities;
 
 
 namespace ATouchOfMagic
@@ -179,6 +183,7 @@ namespace ATouchOfMagic
 
             //Create class feats
             CreateExpandedEnhanceArrows(allowed_weapons);
+            CreateExtraHailOfArrows();
             CreateArcheryFeatSelection();
 
 
@@ -562,9 +567,7 @@ namespace ATouchOfMagic
             var save_action = Helpers.CreateActionList(Common.createContextActionSavingThrow(SavingThrowType.Fortitude, Helpers.CreateActionList(save_condition)));
             var action = Helpers.CreateRunActions(Common.createContextActionAttack(save_action));
 
-            var saveDC = Helpers.Create<ContextCalculateAbilityParams>();
-            saveDC.CasterLevel = 20;
-            saveDC.StatType = StatType.Charisma;
+            var saveDC = createContextCalculateHighestMentalStat();
 
             var arrowOfDeathBuff = Helpers.CreateBuff(arrowOfDeath.name + "Buff", "Arrow of Death", $"The target of this arrow must make a Fortitude save or be slain immediately. The DC of this save is equal to 20 + the arcane archer's Charisma modifier.", "",
                      arrowOfDeath.Icon, null,
@@ -602,8 +605,8 @@ namespace ATouchOfMagic
             "",
             CallOfTheWild.LoadIcons.Image2Sprite.Create(@"FeatIcons/Icon_Expanded_Enhanced_Arrows.png"),
             FeatureGroup.CombatFeat,
-            Helpers.PrerequisiteFeature(hailOfArrows)
-            );
+            Helpers.PrerequisiteFeature(hailOfArrows),
+            Helpers.CreateIncreaseResourceAmount(hailOfArrowsResource, 1));
             library.AddFeats(extraHailOfArrows);
         }
 
@@ -697,6 +700,12 @@ namespace ATouchOfMagic
             Helpers.PrerequisiteFeature(enhanceArrowsMagic)
             );
             library.AddFeats(expandedEnhanceArrows);
+        }
+
+        public static ContextCalculateHighestMentalStatForArrowOfDeath createContextCalculateHighestMentalStat()
+        {
+            var c = Helpers.Create<ContextCalculateHighestMentalStatForArrowOfDeath>();
+            return c;
         }
 
     }
@@ -918,9 +927,7 @@ namespace ATouchOfMagic
                 RuleAttackWithWeapon attackWithWeapon = new RuleAttackWithWeapon(maybeCaster, target.Unit, maybeCaster.Body.PrimaryHand.MaybeWeapon, 0);
                 attackWithWeapon.Reason = (RuleReason)this.Context;
                 RuleAttackWithWeapon rule = attackWithWeapon;
-                // Log.Write("TEST");
-                // Log.Write("Weapon range is "+maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters);
-                // Log.Write("Distance to target is "+maybeCaster.DistanceTo(target.Unit));
+
                 if (maybeCaster.DistanceTo(target.Unit) <= maybeCaster.Body.PrimaryHand.MaybeWeapon.AttackRange.Meters)
                 {
                     Log.Write("Attacking");
@@ -992,6 +999,48 @@ namespace ATouchOfMagic
 
     }
 
+
+ public class ContextCalculateHighestMentalStatForArrowOfDeath : ContextAbilityParamsCalculator
+        {
+            public StatType statType = StatType.Charisma;
+
+            public override AbilityParams Calculate(MechanicsContext context)
+            {
+                UnitEntityData maybeCaster = context.MaybeCaster;
+                if (maybeCaster == null)
+                {
+                    return context.Params;
+                }
+
+                var charisma = maybeCaster.Stats.Charisma.ModifiedValue;
+                var intelligence = maybeCaster.Stats.Intelligence.ModifiedValue;
+                var wisdom = maybeCaster.Stats.Wisdom.ModifiedValue;
+
+                if(wisdom >= intelligence && wisdom >= charisma && ATouchOfMagic.Main.settings.bestMentalStat){
+                    statType = StatType.Wisdom;
+                } else if (intelligence >= charisma && intelligence >= wisdom && ATouchOfMagic.Main.settings.bestMentalStat){
+                    statType = StatType.Intelligence;
+                } else {
+                    statType = StatType.Charisma;
+                }
+
+                AbilityData ability = context.SourceAbilityContext?.Ability;
+                RuleCalculateAbilityParams rule = !(ability != (AbilityData)null) ? new RuleCalculateAbilityParams(maybeCaster, context.AssociatedBlueprint, (Spellbook)null) : new RuleCalculateAbilityParams(maybeCaster, ability);
+                rule.ReplaceStat = new StatType?(statType);
+                rule.ReplaceCasterLevel = 20;
+
+                return context.TriggerRule<RuleCalculateAbilityParams>(rule).Result;
+            }
+
+            public override void Validate(ValidationContext context)
+            {
+                base.Validate(context);
+                if (this.statType.IsAttribute() || this.statType == StatType.BaseAttackBonus)
+                    return;
+                string str = string.Join(", ", ((IEnumerable<StatType>)StatTypeHelper.Attributes).Select<StatType, string>((Func<StatType, string>)(s => s.ToString())));
+                context.AddError("StatType must be Base Attack Bonus or an attribute: {0}", (object)str);
+            }
+        }
 
 }
 

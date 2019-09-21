@@ -9,7 +9,6 @@ using Kingmaker.Blueprints.Classes.Spells;
 using Kingmaker.Blueprints.Items.Weapons;
 using Kingmaker.EntitySystem.Stats;
 using Kingmaker.Enums;
-using Kingmaker.PubSubSystem;
 using Kingmaker.RuleSystem;
 using System;
 using Kingmaker.Utility;
@@ -23,14 +22,15 @@ using Kingmaker.UnitLogic.Alignments;
 using CallOfTheWild;
 using Kingmaker.UnitLogic.Abilities;
 using Kingmaker.RuleSystem.Rules;
-using Kingmaker.Designers;
 using Kingmaker.UnitLogic.Mechanics.Actions;
 using Kingmaker.Blueprints.Facts;
-using Kingmaker.EntitySystem.Persistence.Versioning;
 using Kingmaker.UnitLogic.Mechanics;
 using Kingmaker.UnitLogic.Mechanics.Components;
 using Kingmaker.ElementsSystem;
 using Kingmaker.EntitySystem.Entities;
+using Kingmaker.RuleSystem.Rules.Abilities;
+using Kingmaker.Blueprints.Validation;
+using System.Linq;
 
 namespace ATouchOfMagic
 {
@@ -230,7 +230,7 @@ namespace ATouchOfMagic
                                                 FeatureGroup.None,
                                                 Helpers.Create<CallOfTheWild.SpellManipulationMechanics.FactStoreSpell>(f => f.ignore_target_checkers = true));
 
-            int maxVariants = 6; //due to ui limitation
+            int maxVariants = 3; 
 
             var inflictSpellArray = new List<BlueprintAbility>();
             var cureSpellArray = new List<BlueprintAbility>();
@@ -265,17 +265,13 @@ namespace ATouchOfMagic
                         && (!spell.RequireMaterialComponent || spell.HasEnoughMaterialComponent);
             };
 
-            // var undeadType = library.Get<BlueprintFeature>("734a29b693e9ec346ba2951b27987e33");
-            // var dice = Helpers.CreateContextDiceValue(DiceType.D8, Common.createSimpleContextValue(1), Helpers.CreateContextValue(AbilityRankType.DamageBonus));
-            // var healAction = Common.createContextActionHealTarget(dice);
-            // var damageUndeadAction = Helpers.CreateActionDealDamage(DamageEnergyType.PositiveEnergy, dice);
-            // var damageLivingAction = Helpers.CreateActionDealDamage(DamageEnergyType.NegativeEnergy, dice);
-
             var hitAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ReleaseSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
             var missAction = Helpers.CreateActionList(Helpers.Create<CallOfTheWild.SpellManipulationMechanics.ClearSpellStoredInSpecifiedBuff>(r => r.fact = energyArrow));
 
-
+            // spontaneous healing 5e4620cea099c9345a9207c11d7bc916
+            // spontaneous inflict 5ba6b9cc18acafd45b6293d1e03221ac
+            
             for (int i = 0; i < maxVariants; i++)
             {
                 var energyArrowInflicAbility = Helpers.CreateAbility($"DeadeyeDevoteeInflictEnergyArrow{i + 1}Ability",
@@ -414,9 +410,7 @@ namespace ATouchOfMagic
                             foreach (var i in damage)
                             {
                                 this.Context.TriggerRule<RuleHealDamage>(new RuleHealDamage(this.Context.MaybeCaster, this.Target.Unit, i.Dice, i.Bonus));
-
                             }
-
                         }
                         else
                         {
@@ -431,7 +425,6 @@ namespace ATouchOfMagic
             }
         }
     }
-
 
 }
 

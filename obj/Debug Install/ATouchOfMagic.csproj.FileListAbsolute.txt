@@ -19,3 +19,4 @@ D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug In
 D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.csproj.CoreCompileInputs.cache
 D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.dll
 D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\ATouchOfMagic\obj\Debug Install\ATouchOfMagic.pdb
+D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\ATouchOfMagic\settings.json
