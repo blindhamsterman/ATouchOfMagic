@@ -125,7 +125,7 @@
       <HintPath>D:\UnityModManager\UnityModManager.dll</HintPath>
       <Private>False</Private>
     </Reference>
-        <Reference Include="CallOfTheWild">
+    <Reference Include="CallOfTheWild">
       <HintPath>D:\SteamLibrary\SteamApps\common\Pathfinder Kingmaker\Mods\CallOfTheWild\CallOfTheWild.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -151,7 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Repository.json" />
-      <None Include="settings.json">
+    <None Include="settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -160,6 +160,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Familiar\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

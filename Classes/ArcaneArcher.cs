@@ -40,6 +40,8 @@ using Kingmaker.RuleSystem.Rules.Abilities;
 using Kingmaker.Blueprints.Validation;
 using System.Linq;
 using Kingmaker.UnitLogic.Abilities;
+using Kingmaker.UnitLogic.FactLogic;
+using Kingmaker.ResourceLinks;
 
 
 namespace ATouchOfMagic
@@ -71,6 +73,7 @@ namespace ATouchOfMagic
         static internal BlueprintAbilityResource arrowOfDeathResource;
         static internal BlueprintFeature arcaneArcherProficiencies;
         static internal BlueprintFeature expandedEnhanceArrows;
+        static internal BlueprintFeature owlcatFamiliarBondFeature;
         static internal BlueprintBuff corrosiveArrowBuff;
         static internal BlueprintFeature corrosiveArrowsFeature;
         static internal BlueprintFeature specialArrowsFeature;
@@ -185,6 +188,7 @@ namespace ATouchOfMagic
             CreateExpandedEnhanceArrows(allowed_weapons);
             CreateExtraHailOfArrows();
             CreateArcheryFeatSelection();
+            CreateOwlcatFamiliar();
 
 
             arcaneArcherProgression = Helpers.CreateProgression("ArcaneArcherProgression",
@@ -608,6 +612,40 @@ namespace ATouchOfMagic
             Helpers.PrerequisiteFeature(hailOfArrows),
             Helpers.CreateIncreaseResourceAmount(hailOfArrowsResource, 1));
             library.AddFeats(extraHailOfArrows);
+        }
+
+        static void CreateOwlcatFamiliar()
+        {
+            var charmAnimal = library.Get<BlueprintAbility>("08df458bd00ba704dab32dd493c61518");
+            
+            owlcatFamiliarBondFeature = library.CopyAndAdd<BlueprintFeature>(
+           "1cb0b559ca2e31e4d9dc65de012fa82f", // cat familiar proficiencies
+           "OwlcatFamiliarBondFeature",
+           "a1044d9ef9444fa18cdeba353806531a");
+            owlcatFamiliarBondFeature.SetName("Owlcat Familiar");
+            owlcatFamiliarBondFeature.SetDescription("A familiar is a magical pet that enhances the charater's skills and senses. An Owlcat's master gains a +3 bonus on Stealth checks and a +2 bonus on Perception checks.");
+            var owlcatFamiliarBuff = Helpers.CreateBuff("OwlcatFamiliarBuff", "Owlcat Familiar",
+                "A familiar is a magical pet that enhances the charater's skills and senses. An Owlcat's master gains a +3 bonus on Stealth checks and a +2 bonus on Perception checks.",
+                "2be38e63df4f43d0a88bca197e67f48d", charmAnimal.Icon, null);
+            owlcatFamiliarBuff.AddComponent(CreateAddFamiliar());
+            var owlcatFamiliarAbility = library.CopyAndAdd<BlueprintActivatableAbility>("39f45f50742fe8a4aa6b295d036e4c28", "OwlcatFamiliarAbility", "f1acc4ef459f4156b0c489672d7ce4d9");
+            owlcatFamiliarAbility.SetDescription(owlcatFamiliarBondFeature.Description);
+            owlcatFamiliarAbility.SetName(owlcatFamiliarBondFeature.Name);
+            owlcatFamiliarAbility.Buff = owlcatFamiliarBuff;
+            owlcatFamiliarBondFeature.ReplaceComponent<AddFacts>(Helpers.CreateAddFacts(owlcatFamiliarAbility));
+
+            var arcaneBondFeature = library.Get<BlueprintFeatureSelection>("03a1781486ba98043afddaabf6b7d8ff");
+            arcaneBondFeature.AllFeatures = arcaneBondFeature.AllFeatures.AddToArray(owlcatFamiliarBondFeature);
+        }
+
+        static public AddFamiliar CreateAddFamiliar()
+        {
+            var sc = Helpers.Create<Kingmaker.UnitLogic.FactLogic.AddFamiliar>();
+            sc.name = "AddFamiliar";
+            FamiliarLink p = new FamiliarLink();
+            p.AssetId = "fc8044c092e46db43895023e08cb8d62";
+            sc.PrefabLink = p;
+            return sc;
         }
 
         static void CreateExpandedEnhanceArrows(BlueprintWeaponType[] allowed_weapons)
