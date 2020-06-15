@@ -68,6 +68,7 @@ namespace ATouchOfMagic
             }
             return true;
         }
+        [Harmony12.HarmonyAfter("CallOfTheWild")]
         [Harmony12.HarmonyPatch(typeof(LibraryScriptableObject), "LoadDictionary")]
         [Harmony12.HarmonyPatch(typeof(LibraryScriptableObject), "LoadDictionary", new Type[0])]
         static class LibraryScriptableObject_LoadDictionary_Patch
