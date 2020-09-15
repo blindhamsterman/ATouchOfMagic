@@ -8,3 +8,15 @@
 .vs/ATouchOfMagic/v16/Server/sqlite3/storage.ide-wal
 *.ide-wal
 *.ide-shm
+obj/ReleaseInstall/.NETFramework,Version=v4.7.1.AssemblyAttributes.cs
+obj/ReleaseInstall/ATouchOfMagic.csproj.CoreCompileInputs.cache
+obj/ReleaseInstall/ATouchOfMagic.csproj.FileListAbsolute.txt
+obj/ReleaseInstall/ATouchOfMagic.csproj.GenerateResource.cache
+obj/ReleaseInstall/ATouchOfMagic.csprojAssemblyReference.cache
+obj/ReleaseInstall/ATouchOfMagic.dll
+obj/ReleaseInstall/DesignTimeResolveAssemblyReferences.cache
+obj/ReleaseInstall/DesignTimeResolveAssemblyReferencesInput.cache
+obj/ReleaseInstall/ATouchOfMagic.csproj.CoreCompileInputs.cache
+obj/ReleaseInstall/ATouchOfMagic.csproj.FileListAbsolute.txt
+obj/ReleaseInstall/ATouchOfMagic.csproj.GenerateResource.cache
+obj/ReleaseInstall/ATouchOfMagic.dll
